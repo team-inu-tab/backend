@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class SampleController {
-    // cd test 1
+    // cd test 2
     @GetMapping("/")
     public String sampleMapping(){
         return "sample";
