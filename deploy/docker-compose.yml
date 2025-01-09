@@ -1,12 +1,12 @@
 version: "3.7"
 services:
-  redis:
-    container_name: redis
-    image: redis:alpine
-    ports:
-      - 6379:6379
-    volumes:
-      - ~/Desktop/redis/data/:/data
+#  redis:
+#    container_name: redis
+#    image: redis:alpine
+#    ports:
+#      - 6379:6379
+#    volumes:
+#      - ~/Desktop/redis/data/:/data
   spring:
     container_name: spring
     image: cubric0223/capstone
