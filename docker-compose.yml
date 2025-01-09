@@ -10,8 +10,9 @@ services:
   spring:
     container_name: spring
     image: cubric0223/capstone
+    # 포트 수정
     ports:
-      - 8080:8080
+      - 8089:8089
     volumes:
       - /var/log/:/logs/
 #    depends_on:
