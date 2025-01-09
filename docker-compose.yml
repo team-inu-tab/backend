@@ -12,7 +12,7 @@ services:
     image: cubric0223/capstone
     # 포트 수정
     ports:
-      - 8089:8089
+      - 8080:8080
     volumes:
       - /var/log/:/logs/
 #    depends_on:
