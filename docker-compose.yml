@@ -9,7 +9,7 @@ services:
 #      - ~/Desktop/redis/data/:/data
   spring:
     container_name: spring
-    image: cubric0223/capstone
+    image: cubric0223/capstone:latest
     # 포트 수정
     ports:
       - 8080:8080
