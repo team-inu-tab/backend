@@ -9,6 +9,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -29,6 +31,9 @@ public class User {
 
     @CreatedDate
     private LocalDateTime created_time;
+
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens = new ArrayList<>();
 
     @Builder
     public User(String name, String email, String role, String username) {
