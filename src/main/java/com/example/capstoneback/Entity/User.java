@@ -21,16 +21,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String role;
 
+    @Column(nullable = false)
     private String username;
 
     @CreatedDate
-    private LocalDateTime created_time;
+    @Column(name = "created_time", nullable = false)
+    private LocalDateTime createdTime;
 
     @OneToMany(mappedBy = "user")
     private List<Token> tokens = new ArrayList<>();
