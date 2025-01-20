@@ -2,6 +2,7 @@ package com.example.capstoneback.Entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -14,13 +15,23 @@ public class Token {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    private String refresh_token;
+    @Column(name = "refresh_token", nullable = false)
+    private String refreshToken;
 
-    private LocalDateTime expiration_at;
+    @Column(name = "expiration_at", nullable = false)
+    private LocalDateTime expirationAt;
 
     @ManyToOne
     @JoinColumn
     private User user;
+
+    @Builder
+    public Token(String refreshToken, LocalDateTime expirationAt, User user) {
+        this.refreshToken = refreshToken;
+        this.expirationAt = expirationAt;
+        this.user = user;
+    }
 }
