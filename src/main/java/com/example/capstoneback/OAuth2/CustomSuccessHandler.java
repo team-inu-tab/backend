@@ -35,7 +35,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Refresh Token 수명: 24시간
         String refreshToken = jwtUtil.createJwt("refresh-token" ,username, role, 24*60*60*1000L);
 
-        // Refresh Token 쿠기 수명: 24시간, 사용 가능 url path: '/reissue'
+        // Refresh Token 쿠키 수명: 24시간, 사용 가능 url path: '/reissue'
         response.addCookie(createCookie("refresh-token", refreshToken, 24*60*60, "/oauth2/reissue"));
 
         response.sendRedirect("http://localhost:5500/loginSuccess.html"); //프론트 특정 url로 리다이렉트 되게 설정
