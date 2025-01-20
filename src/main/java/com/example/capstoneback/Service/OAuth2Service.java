@@ -80,6 +80,9 @@ public class OAuth2Service {
 
         tokenRepository.save(refreshTokenEntity);
 
-        return ReissueResponseDTO.builder().accessToken(newAccessToken).build();
+        return ReissueResponseDTO.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
     }
 }
