@@ -2,17 +2,23 @@ package com.example.capstoneback.Service;
 
 import com.example.capstoneback.DTO.ReissueRequestDTO;
 import com.example.capstoneback.DTO.ReissueResponseDTO;
+import com.example.capstoneback.Entity.Token;
+import com.example.capstoneback.Entity.User;
 import com.example.capstoneback.Jwt.JwtUtil;
+import com.example.capstoneback.Repository.TokenRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class OAuth2Service {
 
     private final JwtUtil jwtUtil;
+    private final TokenRepository tokenRepository;
 
     public ReissueResponseDTO reissue(ReissueRequestDTO requestDTO){
 
@@ -48,11 +54,32 @@ public class OAuth2Service {
             return ReissueResponseDTO.builder().accessToken(null).build();
         }
 
-        //토큰이 정상적으로 존재할 경우 accessToken 발급해서 리턴
+        //db에서 리프레시 토큰 확인
+        Token existRefreshToken = tokenRepository.findByRefreshToken(refreshToken);
+        if(existRefreshToken == null){
+            return ReissueResponseDTO.builder().accessToken(null).build();
+        }
+        User user = existRefreshToken.getUser();
+
+        //기존 리프레시 토큰 삭제
+        tokenRepository.delete(existRefreshToken);
+
+        //액세스 토큰, 리프레시 토큰 생성
         String username = jwtUtil.getUsername(refreshToken);
         String role = jwtUtil.getRole(refreshToken);
 
         String newAccessToken = jwtUtil.createJwt("access-token", username, role, 10*60*1000L);
+        String newRefreshToken = jwtUtil.createJwt("refresh-token", username, role, 24*60*60*1000L);
+
+        //리프레시 토큰 db 저장
+        Token refreshTokenEntity = Token.builder()
+                .refreshToken(newRefreshToken)
+                .expirationAt(LocalDateTime.now().plusHours(24))
+                .user(user)
+                .build();
+
+        tokenRepository.save(refreshTokenEntity);
+
         return ReissueResponseDTO.builder().accessToken(newAccessToken).build();
     }
 }

@@ -1,7 +1,11 @@
 package com.example.capstoneback.OAuth2;
 
 import com.example.capstoneback.DTO.CustomOAuth2User;
+import com.example.capstoneback.Entity.Token;
+import com.example.capstoneback.Entity.User;
 import com.example.capstoneback.Jwt.JwtUtil;
+import com.example.capstoneback.Repository.TokenRepository;
+import com.example.capstoneback.Repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,13 +17,18 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 
 @Component
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
     private final JwtUtil jwtUtil;
+    private final TokenRepository tokenRepository;
+    private final UserRepository userRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -34,6 +43,17 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // Refresh Token 수명: 24시간
         String refreshToken = jwtUtil.createJwt("refresh-token" ,username, role, 24*60*60*1000L);
+
+        User user = userRepository.findByUsername(username);
+
+        // 생성된 리프레시 토큰 db에 저장
+        Token refreshTokenEntity = Token.builder()
+                .refreshToken(refreshToken)
+                .expirationAt(LocalDateTime.now().plusHours(24))
+                .user(user)
+                .build();
+
+        tokenRepository.save(refreshTokenEntity);
 
         // Refresh Token 쿠키 수명: 24시간, 사용 가능 url path: '/reissue'
         response.addCookie(createCookie("refresh-token", refreshToken, 24*60*60, "/oauth2/reissue"));
