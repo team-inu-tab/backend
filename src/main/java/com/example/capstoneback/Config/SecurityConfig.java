@@ -1,10 +1,12 @@
 package com.example.capstoneback.Config;
 
+import com.example.capstoneback.Jwt.CustomLogoutFilter;
 import com.example.capstoneback.Jwt.JwtFilter;
 import com.example.capstoneback.Jwt.JwtUtil;
 import com.example.capstoneback.OAuth2.CustomAccessDeniedHandler;
 import com.example.capstoneback.OAuth2.CustomAuthenticationEntryPoint;
 import com.example.capstoneback.OAuth2.CustomSuccessHandler;
+import com.example.capstoneback.Service.LogoutService;
 import com.example.capstoneback.Service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -32,6 +35,7 @@ public class SecurityConfig {
     private final CustomSuccessHandler customSuccessHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final LogoutService logoutService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -90,9 +94,18 @@ public class SecurityConfig {
                         .accessDeniedHandler(customAccessDeniedHandler) // 인가 받지 않은 유저 예외 처리
                 );
 
+        http
+                .logout((logout) -> logout
+                        .logoutUrl("oauth2/logout")
+                );
+
         //JwtFilter 추가
         http
                 .addFilterBefore(new JwtFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class);
+
+        //커스텀 로그아웃 필터 추가
+        http
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, logoutService), LogoutFilter.class);
 
         //무상태성으로 세션 관리 - jwt 토큰 사용
         http
