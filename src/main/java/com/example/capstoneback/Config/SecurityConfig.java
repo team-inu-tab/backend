@@ -10,6 +10,7 @@ import com.example.capstoneback.Service.LogoutService;
 import com.example.capstoneback.Service.CustomOAuth2UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,6 +30,9 @@ import java.util.Collections;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    @Value("${FRONT_ADDRESS}")
+    private String FRONT_ADDRESS;
 
     private final JwtUtil jwtUtil;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -59,7 +63,7 @@ public class SecurityConfig {
                                 CorsConfiguration configuration = new CorsConfiguration();
 
                                 //요청 허용하는 오리진 설정
-                                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5500"));
+                                configuration.setAllowedOrigins(Collections.singletonList(FRONT_ADDRESS));
 
                                 //허용하는 요청 종류(Get, Post...) 설정
                                 configuration.setAllowedMethods(Collections.singletonList("*"));

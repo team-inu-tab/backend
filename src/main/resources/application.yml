@@ -5,7 +5,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:mysql://localhost:3306/${DB_MYSQL_DBNAME}
+    url: jdbc:mysql://${DB_HOST_PORT}/${DB_MYSQL_DBNAME}
     username: ${DB_MYSQL_USERNAME}
     password: ${DB_MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -25,7 +25,7 @@ spring:
             client-name: google
             client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
             client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
+            redirect-uri: ${SERVER_ADDRESS}/login/oauth2/code/google
             scope:
               - profile
               - email

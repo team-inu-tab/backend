@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -24,6 +25,9 @@ import java.util.Iterator;
 @Component
 @RequiredArgsConstructor
 public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    @Value("${FRONT_ADDRESS}")
+    private String FRONT_ADDRESS;
 
     private final JwtUtil jwtUtil;
     private final TokenRepository tokenRepository;
@@ -57,7 +61,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Refresh Token 쿠키 수명: 24시간, 사용 가능 url path: '/reissue'
         response.addCookie(createCookie("refresh-token", refreshToken, 24*60*60, "/"));
 
-        response.sendRedirect("http://localhost:5500/loginSuccess.html"); //프론트 특정 url로 리다이렉트 되게 설정
+        response.sendRedirect(FRONT_ADDRESS + "/loginSuccess.html"); //프론트 특정 url로 리다이렉트 되게 설정
     }
 
     //쿠키 생성 메서드
