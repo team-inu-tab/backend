@@ -33,6 +33,15 @@ public class User {
     @Column(nullable = false)
     private String username;
 
+    //학생 추가정보
+    private String studentDepartment;
+    private Integer studentNum;
+
+    //직장인 추가정보
+    private String workerDepartment;
+    private String company;
+    private String position;
+
     @CreatedDate
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -54,5 +63,16 @@ public class User {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updateStudentInfo(String studentDepartment, Integer studentNum){
+        this.studentDepartment = studentDepartment;
+        this.studentNum = studentNum;
+    }
+
+    public void updateWorkerInfo(String workerDepartment, String company, String position){
+        this.workerDepartment = workerDepartment;
+        this.company = company;
+        this.position = position;
     }
 }
