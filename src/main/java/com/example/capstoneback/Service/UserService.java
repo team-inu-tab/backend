@@ -54,7 +54,7 @@ public class UserService {
 
         //유저가 존재하지 않을 경우 에러 발생
         if(user == null) {
-            throw new UserDoesntExistException("user doesnt exist", ErrorCode.USER_DOESNT_EXIST);
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
         }
 
         return user;

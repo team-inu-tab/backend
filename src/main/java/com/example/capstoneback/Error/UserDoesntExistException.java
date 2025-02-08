@@ -7,8 +7,8 @@ public class UserDoesntExistException extends RuntimeException {
 
     private ErrorCode errorCode;
 
-    public UserDoesntExistException(String message, ErrorCode errorCode) {
-        super(message);
+    public UserDoesntExistException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
 }
