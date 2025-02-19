@@ -37,7 +37,7 @@ public class JwtUtil {
     }
 
     //jwt token을 생성
-    public String createJwt(String category, String role, String username, Long expiredMs){
+    public String createJwt(String category, String username, String role, Long expiredMs){
         return Jwts.builder()
                 .claim("category", category)
                 .claim("role", role)

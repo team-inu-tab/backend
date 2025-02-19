@@ -29,6 +29,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${FRONT_ADDRESS}")
     private String FRONT_ADDRESS;
 
+    @Value("${LOGIN_SUCCESS_REDIRECT_PAGE}")
+    private String LOGIN_SUCCESS_REDIRECT_PAGE;
+
     private final JwtUtil jwtUtil;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
@@ -61,7 +64,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Refresh Token 쿠키 수명: 24시간, 사용 가능 url path: '/reissue'
         response.addCookie(createCookie("refresh-token", refreshToken, 24*60*60, "/"));
 
-        response.sendRedirect(FRONT_ADDRESS + "/loginSuccess.html"); //프론트 특정 url로 리다이렉트 되게 설정
+        response.sendRedirect(FRONT_ADDRESS + LOGIN_SUCCESS_REDIRECT_PAGE); //프론트 특정 url로 리다이렉트 되게 설정
     }
 
     //쿠키 생성 메서드
