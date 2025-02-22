@@ -6,6 +6,7 @@ import com.example.capstoneback.DTO.OAuth2Response;
 import com.example.capstoneback.DTO.OAuth2UserDTO;
 import com.example.capstoneback.Entity.User;
 import com.example.capstoneback.Repository.UserRepository;
+import com.google.api.services.gmail.model.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -14,11 +15,15 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final GmailService gmailService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -58,6 +63,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .build();
 
             userRepository.save(user);
+
+            // 지메일 메세지 10개 불러오기
+            List<Message> messages = null;
+            try {
+                messages = gmailService.getEmails(userRequest.getAccessToken());
+            } catch (IOException e) {
+                System.out.println("getEmails Runtime Exception");
+            }
 
             //UserDTO에 데이터 저장 후 CustomOAuth2User에 전달하여 결과적으로 OAuth2User를 리턴
             OAuth2UserDTO userDTO = OAuth2UserDTO.builder()

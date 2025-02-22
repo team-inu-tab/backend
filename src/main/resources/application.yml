@@ -29,5 +29,6 @@ spring:
             scope:
               - profile
               - email
+              - https://www.googleapis.com/auth/gmail.readonly
   jwt:
     secret: ${JWT_SECRET}
