@@ -41,4 +41,6 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
         ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
     }
+
+
 }

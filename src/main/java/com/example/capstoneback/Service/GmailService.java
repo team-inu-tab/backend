@@ -64,9 +64,12 @@ public class GmailService {
         Pattern pattern = Pattern.compile("<(.*?)>");
         Matcher matcher;
         for(Message messageInfo : inboxMessages) {
+            // 단일 이메일 조회
             Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
             String title = null, sender = null;
             LocalDateTime date = null;
+
+            // 헤더에서 제목, 발신자, 수신 날짜 확인
             for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
                 switch (header.getName()){
                     case "Subject":
@@ -94,6 +97,7 @@ public class GmailService {
             boolean isDraft = labelIds.contains("DRAFT");
             boolean isImportant = labelIds.contains("STARRED");
 
+            // 이메일 엔티티 생성 및 저장
             Email email = Email.builder()
                     .title(title)
                     .content(detailMessage.getSnippet())
@@ -106,6 +110,7 @@ public class GmailService {
                     .scheduledAt(null)
                     .user(user)
                     .build();
+
             emailRepository.save(email);
         }
     }
@@ -122,9 +127,12 @@ public class GmailService {
         Pattern pattern = Pattern.compile("<(.*?)>");
         Matcher matcher;
         for(Message messageInfo : inboxMessages) {
+            // 단일 이메일 조회
             Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
             String title = null, receiver = null;
             LocalDateTime date = null;
+
+            // 헤더에서 제목, 수신자, 발신 날짜 확인
             for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
                 switch (header.getName()){
                     case "Subject":
@@ -147,10 +155,12 @@ public class GmailService {
                 }
             }
 
+            // 임시 메일 or 별표 메일인지 확인
             List<String> labelIds = detailMessage.getLabelIds();
             boolean isDraft = labelIds.contains("DRAFT");
             boolean isImportant = labelIds.contains("STARRED");
 
+            // 이메일 엔티티 생성 및 저장
             Email email = Email.builder()
                     .title(title)
                     .content(detailMessage.getSnippet())
@@ -163,6 +173,7 @@ public class GmailService {
                     .scheduledAt(null)
                     .user(user)
                     .build();
+
             emailRepository.save(email);
         }
     }
