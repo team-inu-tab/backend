@@ -47,6 +47,12 @@ public class Email {
 
     @Builder
     public Email(String title, String content, String sender, String receiver, LocalDateTime sendAt, LocalDateTime receiveAt, Boolean isImportant, Boolean isDraft, LocalDateTime scheduledAt, User user) {
+        if(sender == null && receiver == null) {
+            throw new IllegalArgumentException("Sender and Receiver cannot be null at the same time");
+        }
+        if(user == null){
+            throw new IllegalArgumentException("User cannot be null");
+        }
         this.title = title;
         this.content = content;
         this.sender = sender;
