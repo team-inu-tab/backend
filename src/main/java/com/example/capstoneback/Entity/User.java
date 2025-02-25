@@ -49,6 +49,9 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Token> tokens = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Email> emails = new ArrayList<>();
+
     @Builder
     public User(String name, String email, String role, String username) {
         this.name = name;
