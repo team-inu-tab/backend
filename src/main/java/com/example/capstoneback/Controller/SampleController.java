@@ -17,7 +17,7 @@ public class SampleController {
         return "sample";
     }
     // 환경변수 테스트
-    @GetMapping("/env/system")
+    @GetMapping("/")
     public Map<String, String> systemEnv() {
         return System.getenv();
     }
