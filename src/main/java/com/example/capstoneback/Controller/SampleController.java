@@ -16,11 +16,6 @@ public class SampleController {
     public String sampleMapping(){
         return "sample";
     }
-    // 환경변수 테스트
-    @GetMapping("/")
-    public Map<String, String> systemEnv() {
-        return System.getenv();
-    }
 
     @GetMapping("/hello")
     @ResponseBody
