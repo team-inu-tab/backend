@@ -48,7 +48,7 @@ public class Email {
     private User user;
 
     @OneToMany(mappedBy = "email")
-    private List<Multifile> multifiles = new ArrayList<>();
+    private List<MultiFile> multiFiles = new ArrayList<>();
 
     @Builder
     public Email(String title, String content, String sender, String receiver, LocalDateTime sendAt, LocalDateTime receiveAt, Boolean isImportant, Boolean isDraft, LocalDateTime scheduledAt, User user) {

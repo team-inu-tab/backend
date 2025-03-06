@@ -42,5 +42,17 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
     }
 
+    // 파일 저장에 실패했을 때 발생하는 에러 처리
+    @ExceptionHandler(FailedToSaveFileException.class)
+    public ResponseEntity<ErrorResponse> handleFailedToSaveFileException(FailedToSaveFileException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+
+    @ExceptionHandler(FileEmptyException.class)
+    public ResponseEntity<ErrorResponse> handleFileEmptyException(FileEmptyException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
 
 }
