@@ -49,10 +49,32 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
     }
 
+    // 파일 저장 시도할 때 파일이 비었을 경우 발생하는 에러 처리
     @ExceptionHandler(FileEmptyException.class)
     public ResponseEntity<ErrorResponse> handleFileEmptyException(FileEmptyException e) {
         ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
     }
 
+    // 이메일이 존재하지 않을 때 발생하는 에러 처리
+    @ExceptionHandler(EmailDoesntExistException.class)
+    public ResponseEntity<ErrorResponse> handleEmailDoesntExistException(EmailDoesntExistException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+
+    // 파일이 존재하지 않을 때 발생하는 에러 처리
+    @ExceptionHandler(FileDoesntExistException.class)
+    public ResponseEntity<ErrorResponse> handleFileDoesntExistException(FileDoesntExistException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+
+    // 사용자가 잘못된 접근을 할 때 발생하는 에러 처리
+    @ExceptionHandler(IllegalAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalAccessException(IllegalAccessException e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }
