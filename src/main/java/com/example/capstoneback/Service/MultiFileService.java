@@ -54,6 +54,8 @@ public class MultiFileService {
             throw new EmailDoesntExistException(ErrorCode.EMAIL_DOESNT_EXIST);
         }
 
+
+
         // 파일 정보 DB에 저장
         MultiFile multifile = MultiFile.builder()
                 .email(op_email.get())
@@ -82,7 +84,7 @@ public class MultiFileService {
         }
 
         // 해당 이메일과 연결된 파일 조회
-        Optional<MultiFile> op_file = multifileRepository.findByEmailAndFileNameContaining(email, fileName);
+        Optional<MultiFile> op_file = multifileRepository.findByExactTitleWithEmail(email.getId(), fileName);
         if(op_file.isEmpty()) {
             throw new FileDoesntExistException(ErrorCode.FILE_DOESNT_EXIST);
         }
