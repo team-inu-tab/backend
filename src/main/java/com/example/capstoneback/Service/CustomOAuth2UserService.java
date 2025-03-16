@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -48,9 +49,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
 
         //DB에 저장된 유저 정보를 가져옴
-        User existData = userRepository.findByUsername(username);
+        Optional<User> op_user = userRepository.findByUsername(username);
 
-        if(existData == null){ //만약 처음 로그인 한 것이라면
+        if(op_user.isEmpty()){ //만약 처음 로그인 한 것이라면
 
             //새로운 유저 엔티티를 생성하여 데이터를 저장해줌
             User user = User.builder()
@@ -79,18 +80,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return new CustomOAuth2User(userDTO);
 
         } else { //기존 로그인 정보가 남아있다면
+            User user = op_user.get();
 
             //이메일과 이름 정보가 수정되었을 수 있으니 기존의 값 업데이트
-            existData.updateEmail(oAuth2Response.getEmail());
-            existData.updateName(oAuth2Response.getName());
+            user.updateEmail(oAuth2Response.getEmail());
+            user.updateName(oAuth2Response.getName());
 
-            userRepository.save(existData);
+            userRepository.save(user);
 
             //처음 로그인과 마찬가지로 DTO를 생성하여 CustomOAuth2User에 전달 후 OAuth2User를 리턴
             OAuth2UserDTO userDTO = OAuth2UserDTO.builder()
-                    .username(existData.getUsername())
+                    .username(user.getUsername())
                     .name(oAuth2Response.getName())
-                    .role(existData.getRole())
+                    .role(user.getRole())
                     .build();
 
             return new CustomOAuth2User(userDTO);

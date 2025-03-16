@@ -3,6 +3,8 @@ package com.example.capstoneback.OAuth2;
 import com.example.capstoneback.DTO.CustomOAuth2User;
 import com.example.capstoneback.Entity.Token;
 import com.example.capstoneback.Entity.User;
+import com.example.capstoneback.Error.ErrorCode;
+import com.example.capstoneback.Error.UserDoesntExistException;
 import com.example.capstoneback.Jwt.JwtUtil;
 import com.example.capstoneback.Repository.TokenRepository;
 import com.example.capstoneback.Repository.UserRepository;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -50,13 +53,17 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Refresh Token 수명: 24시간
         String refreshToken = jwtUtil.createJwt("refresh-token" ,username, role, 24*60*60*1000L);
 
-        User user = userRepository.findByUsername(username);
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if(op_user.isEmpty()){
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
 
         // 생성된 리프레시 토큰 db에 저장
         Token refreshTokenEntity = Token.builder()
                 .refreshToken(refreshToken)
                 .expirationAt(LocalDateTime.now().plusHours(24))
-                .user(user)
+                .user(op_user.get())
                 .build();
 
         tokenRepository.save(refreshTokenEntity);

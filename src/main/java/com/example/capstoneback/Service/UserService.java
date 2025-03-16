@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -50,14 +52,14 @@ public class UserService {
         String username = jwtUtil.getUsername(token);
 
         //db에서 유저 정보 가져옴
-        User user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
 
         //유저가 존재하지 않을 경우 에러 발생
-        if(user == null) {
+        if(user.isEmpty()) {
             throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
         }
 
-        return user;
+        return user.get();
     }
 
 
