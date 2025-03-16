@@ -1,6 +1,7 @@
 package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
+import com.example.capstoneback.DTO.SentEmailResponseDTO;
 import com.example.capstoneback.Service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,12 @@ public class EmailController {
     @GetMapping("/mails/receive")
     public ResponseEntity<List<ReceivedEmailResponseDTO>> getReceivedEmails(Authentication authentication){
         List<ReceivedEmailResponseDTO> responseDTO = emailService.getReceivedEmails(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/mails/send")
+    public ResponseEntity<List<SentEmailResponseDTO>> getSentEmails(Authentication authentication){
+        List<SentEmailResponseDTO> responseDTO = emailService.getSentEmails(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 }
