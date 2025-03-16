@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface MultiFileRepository extends JpaRepository<MultiFile, Long> {
     @Query("SELECT m FROM MultiFile m JOIN FETCH m.email e WHERE e.id = :emailId AND m.fileName LIKE CONCAT('%_', :fileName)")
     Optional<MultiFile> findByExactTitleWithEmail(@Param("emailId") Long emailId, @Param("fileName") String fileName);
+
+    Boolean existsByEmailId(Long emailId);
 }
