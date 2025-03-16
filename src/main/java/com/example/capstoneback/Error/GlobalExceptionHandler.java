@@ -77,4 +77,11 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
         errorResponse.put("message", e.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    // 이미 존재하는 파일을 중복 저장하려 할 때 발생하는 에러 처리
+    @ExceptionHandler(FileAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleFileAlreadyExistException(FileAlreadyExistException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
 }

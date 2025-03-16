@@ -77,7 +77,7 @@ public class GmailService {
                     case "From":
                         String from = header.getValue();
                         matcher = pattern.matcher(from);
-                        sender = matcher.find() ? matcher.group(1) : null;
+                        sender = matcher.find() ? matcher.group(1) : from;
                         break;
                     case "Date":
                         // Date를 LocalDateTime 타입에 맞게 변환
@@ -140,7 +140,7 @@ public class GmailService {
                     case "To":
                         String to = header.getValue();
                         matcher = pattern.matcher(to);
-                        receiver = matcher.find() ? matcher.group(1) : null;
+                        receiver = matcher.find() ? matcher.group(1) : to;
                         break;
                     case "Date":
                         // Date를 LocalDateTime 타입에 맞게 변환

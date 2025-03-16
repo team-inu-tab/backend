@@ -56,7 +56,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String role = jwtUtil.getRole(accessToken);
-        String name = jwtUtil.getUsername(accessToken);
+        String name = jwtUtil.getUsername(accessToken); // 사용자명 중복을 피하기 위해 Username 값을 name에 저장하여 사용
 
         OAuth2UserDTO userDTO = OAuth2UserDTO.builder()
                 .role(role)

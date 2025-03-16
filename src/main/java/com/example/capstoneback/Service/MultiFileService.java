@@ -4,6 +4,7 @@ import com.example.capstoneback.Entity.Email;
 import com.example.capstoneback.Entity.MultiFile;
 import com.example.capstoneback.Error.EmailDoesntExistException;
 import com.example.capstoneback.Error.ErrorCode;
+import com.example.capstoneback.Error.FileAlreadyExistException;
 import com.example.capstoneback.Error.FileDoesntExistException;
 import com.example.capstoneback.Repository.EmailRepository;
 import com.example.capstoneback.Repository.MultiFileRepository;
@@ -43,16 +44,22 @@ public class MultiFileService {
             uploadPath.mkdirs();
         }
 
-        // 저장할 파일 경로 설정
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir, fileName);
-        Files.write(filePath, file.getBytes()); // 파일 저장
-
         // 해당 이메일 조회
         Optional<Email> op_email = emailRepository.findById(mailId);
         if(op_email.isEmpty()){
             throw new EmailDoesntExistException(ErrorCode.EMAIL_DOESNT_EXIST);
         }
+
+        // 파일 중복 저장 방지
+        Optional<MultiFile> op_file = multifileRepository.findByExactTitleWithEmail(op_email.get().getId(), file.getOriginalFilename());
+        if(op_file.isPresent()){
+            throw new FileAlreadyExistException(ErrorCode.FILE_ALREADY_EXIST);
+        }
+
+        // 저장할 파일 경로 설정
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir, fileName);
+        Files.write(filePath, file.getBytes()); // 파일 저장
 
         // 파일 정보 DB에 저장
         MultiFile multifile = MultiFile.builder()
@@ -82,7 +89,7 @@ public class MultiFileService {
         }
 
         // 해당 이메일과 연결된 파일 조회
-        Optional<MultiFile> op_file = multifileRepository.findByEmailAndFileNameContaining(email, fileName);
+        Optional<MultiFile> op_file = multifileRepository.findByExactTitleWithEmail(email.getId(), fileName);
         if(op_file.isEmpty()) {
             throw new FileDoesntExistException(ErrorCode.FILE_DOESNT_EXIST);
         }

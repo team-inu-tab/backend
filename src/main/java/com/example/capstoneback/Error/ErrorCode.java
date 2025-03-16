@@ -11,6 +11,7 @@ public enum ErrorCode { //에러 정보를 정리해놓는 enum 클래스
     FAILED_TO_SAVE_FILE(500, "failed to save file"),
     EMAIL_DOESNT_EXIST(400, "email doesnt exist"),
     FILE_DOESNT_EXIST(400, "file doesnt exist"),
+    FILE_ALREADY_EXIST(400, "file already exist")
     ;
 
     private int status;
