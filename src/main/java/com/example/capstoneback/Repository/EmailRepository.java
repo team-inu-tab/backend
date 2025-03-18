@@ -16,4 +16,5 @@ public interface EmailRepository extends JpaRepository<Email, Long> {
     List<Email> findByUserAndReceiverAndSenderAndIsDraftIsFalse(User user, String receiver, String sender, Limit limit);
     List<Email> findByUserAndIsImportantIsTrue(User user, Limit limit);
     List<Email> findByUserAndScheduledAtIsAfter(User user, LocalDateTime scheduledAt);
+    List<Email> findByUserAndIsDraftIsTrue(User user, Limit limit);
 }

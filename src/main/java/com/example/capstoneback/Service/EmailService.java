@@ -148,4 +148,27 @@ public class EmailService {
                 .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
                 .build()).toList();
     }
+
+    public List<DraftEmailResponseDTO> getDraftEmails(Authentication authentication){
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if(op_user.isEmpty()){
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        List<Email> emails = emailRepository.findByUserAndIsDraftIsTrue(user, Limit.of(10));
+
+        return emails.stream().map(email -> DraftEmailResponseDTO.builder()
+                .id(email.getId())
+                .title(email.getTitle())
+                .content(email.getContent())
+                .receiver(email.getReceiver())
+                .isImportant(email.getIsImportant())
+                .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
+                .build()).toList();
+    }
 }

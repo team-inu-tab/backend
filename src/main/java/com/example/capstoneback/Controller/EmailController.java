@@ -45,4 +45,10 @@ public class EmailController {
         List<ScheduledEmailResponseDTO> responseDTO = emailService.getScheduledEmails(authentication);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @GetMapping("/mails/draft")
+    public ResponseEntity<List<DraftEmailResponseDTO>> getDraftEmails(Authentication authentication){
+        List<DraftEmailResponseDTO> responseDTO = emailService.getDraftEmails(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
 }
