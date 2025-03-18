@@ -1,5 +1,6 @@
 package com.example.capstoneback.Service;
 
+import com.example.capstoneback.DTO.ImportantEmailResponseDTO;
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
 import com.example.capstoneback.DTO.SelfEmailResponseDTO;
 import com.example.capstoneback.DTO.SentEmailResponseDTO;
@@ -95,6 +96,32 @@ public class EmailService {
                 .title(email.getTitle())
                 .content(email.getContent())
                 .sendAt(email.getSendAt())
+                .isImportant(email.getIsImportant())
+                .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
+                .build()).toList();
+    }
+
+    public List<ImportantEmailResponseDTO> getImportantEmails(Authentication authentication){
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if(op_user.isEmpty()){
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        List<Email> emails = emailRepository.findByUserAndIsImportantIsTrue(user, Limit.of(10));
+
+        return emails.stream().map(email -> ImportantEmailResponseDTO.builder()
+                .id(email.getId())
+                .title(email.getTitle())
+                .content(email.getContent())
+                .sendAt(email.getSendAt())
+                .sender(email.getSender())
+                .receiver(email.getReceiver())
+                .receiveAt(email.getReceiveAt())
                 .isImportant(email.getIsImportant())
                 .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
                 .build()).toList();

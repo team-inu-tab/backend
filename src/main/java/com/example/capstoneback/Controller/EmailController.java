@@ -1,5 +1,6 @@
 package com.example.capstoneback.Controller;
 
+import com.example.capstoneback.DTO.ImportantEmailResponseDTO;
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
 import com.example.capstoneback.DTO.SelfEmailResponseDTO;
 import com.example.capstoneback.DTO.SentEmailResponseDTO;
@@ -33,6 +34,12 @@ public class EmailController {
     @GetMapping("/mails/self")
     public ResponseEntity<List<SelfEmailResponseDTO>> getSelfEmail(Authentication authentication){
         List<SelfEmailResponseDTO> responseDTO = emailService.getSelfEmails(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/mails/important")
+    public ResponseEntity<List<ImportantEmailResponseDTO>> getImportantEmails(Authentication authentication){
+        List<ImportantEmailResponseDTO> responseDTO = emailService.getImportantEmails(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 }
