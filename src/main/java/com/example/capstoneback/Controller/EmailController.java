@@ -1,9 +1,6 @@
 package com.example.capstoneback.Controller;
 
-import com.example.capstoneback.DTO.ImportantEmailResponseDTO;
-import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
-import com.example.capstoneback.DTO.SelfEmailResponseDTO;
-import com.example.capstoneback.DTO.SentEmailResponseDTO;
+import com.example.capstoneback.DTO.*;
 import com.example.capstoneback.Service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +37,12 @@ public class EmailController {
     @GetMapping("/mails/important")
     public ResponseEntity<List<ImportantEmailResponseDTO>> getImportantEmails(Authentication authentication){
         List<ImportantEmailResponseDTO> responseDTO = emailService.getImportantEmails(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/mails/schedule")
+    public ResponseEntity<List<ScheduledEmailResponseDTO>> getScheduledEmails(Authentication authentication){
+        List<ScheduledEmailResponseDTO> responseDTO = emailService.getScheduledEmails(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 }

@@ -1,9 +1,6 @@
 package com.example.capstoneback.Service;
 
-import com.example.capstoneback.DTO.ImportantEmailResponseDTO;
-import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
-import com.example.capstoneback.DTO.SelfEmailResponseDTO;
-import com.example.capstoneback.DTO.SentEmailResponseDTO;
+import com.example.capstoneback.DTO.*;
 import com.example.capstoneback.Entity.Email;
 import com.example.capstoneback.Entity.User;
 import com.example.capstoneback.Error.ErrorCode;
@@ -16,6 +13,7 @@ import org.springframework.data.domain.Limit;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -122,6 +120,30 @@ public class EmailService {
                 .sender(email.getSender())
                 .receiver(email.getReceiver())
                 .receiveAt(email.getReceiveAt())
+                .isImportant(email.getIsImportant())
+                .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
+                .build()).toList();
+    }
+
+    public List<ScheduledEmailResponseDTO> getScheduledEmails(Authentication authentication){
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if(op_user.isEmpty()){
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        List<Email> emails = emailRepository.findByUserAndScheduledAtIsAfter(user, LocalDateTime.now());
+
+        return emails.stream().map(email -> ScheduledEmailResponseDTO.builder()
+                .id(email.getId())
+                .title(email.getTitle())
+                .content(email.getContent())
+                .receiver(email.getReceiver())
+                .scheduledAt(email.getScheduledAt())
                 .isImportant(email.getIsImportant())
                 .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
                 .build()).toList();
