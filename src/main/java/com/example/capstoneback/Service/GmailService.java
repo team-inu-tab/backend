@@ -46,6 +46,7 @@ public class GmailService {
         //Gmail api 요청 객체 생성
         Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
                 .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+                .setApplicationName("maeil-mail")
                 .build();
 
         saveInboxGmail(gmail, user); //받은 gmail 5개 db에 저장
