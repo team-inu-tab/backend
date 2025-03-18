@@ -112,6 +112,7 @@ public class EmailService {
 
         User user = op_user.get();
 
+        // 최신 중요 메일 10개 조회
         List<Email> emails = emailRepository.findByUserAndIsImportantIsTrue(user, Limit.of(10));
 
         return emails.stream().map(email -> ImportantEmailResponseDTO.builder()
@@ -138,6 +139,7 @@ public class EmailService {
 
         User user = op_user.get();
 
+        // 최신 예약 메일 10개 조회
         List<Email> emails = emailRepository.findByUserAndScheduledAtIsAfter(user, LocalDateTime.now());
 
         return emails.stream().map(email -> ScheduledEmailResponseDTO.builder()
@@ -162,6 +164,7 @@ public class EmailService {
 
         User user = op_user.get();
 
+        // 최신 임시 메일 10개 조회
         List<Email> emails = emailRepository.findByUserAndIsDraftIsTrue(user, Limit.of(10));
 
         return emails.stream().map(email -> DraftEmailResponseDTO.builder()
