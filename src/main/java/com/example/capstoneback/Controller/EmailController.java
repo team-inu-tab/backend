@@ -1,6 +1,7 @@
 package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
+import com.example.capstoneback.DTO.SelfEmailResponseDTO;
 import com.example.capstoneback.DTO.SentEmailResponseDTO;
 import com.example.capstoneback.Service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,12 @@ public class EmailController {
     @GetMapping("/mails/send")
     public ResponseEntity<List<SentEmailResponseDTO>> getSentEmails(Authentication authentication){
         List<SentEmailResponseDTO> responseDTO = emailService.getSentEmails(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/mails/self")
+    public ResponseEntity<List<SelfEmailResponseDTO>> getSelfEmail(Authentication authentication){
+        List<SelfEmailResponseDTO> responseDTO = emailService.getSelfEmails(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 }

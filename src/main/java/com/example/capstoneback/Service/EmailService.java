@@ -1,6 +1,7 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
+import com.example.capstoneback.DTO.SelfEmailResponseDTO;
 import com.example.capstoneback.DTO.SentEmailResponseDTO;
 import com.example.capstoneback.Entity.Email;
 import com.example.capstoneback.Entity.User;
@@ -69,6 +70,30 @@ public class EmailService {
                 .title(email.getTitle())
                 .content(email.getContent())
                 .receiver(email.getReceiver())
+                .sendAt(email.getSendAt())
+                .isImportant(email.getIsImportant())
+                .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
+                .build()).toList();
+    }
+
+    public List<SelfEmailResponseDTO> getSelfEmails(Authentication authentication){
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if(op_user.isEmpty()){
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        // 최근 내게 보낸 이메일 10개 조회
+        List<Email> emails = emailRepository.findByUserAndReceiverAndSenderAndIsDraftIsFalse(user, user.getEmail(), user.getEmail(), Limit.of(10));
+
+        return emails.stream().map(email -> SelfEmailResponseDTO.builder()
+                .id(email.getId())
+                .title(email.getTitle())
+                .content(email.getContent())
                 .sendAt(email.getSendAt())
                 .isImportant(email.getIsImportant())
                 .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
