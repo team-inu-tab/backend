@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -49,6 +50,12 @@ public class EmailController {
     @GetMapping("/mails/draft")
     public ResponseEntity<List<DraftEmailResponseDTO>> getDraftEmails(Authentication authentication){
         List<DraftEmailResponseDTO> responseDTO = emailService.getDraftEmails(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/mails/{id}")
+    public ResponseEntity<MailDetailsResponseDTO> getEmailDetails(@PathVariable("id") Long mailId, Authentication authentication) throws IllegalAccessException {
+        MailDetailsResponseDTO responseDTO = emailService.getMailDetails(mailId ,authentication);
         return ResponseEntity.ok(responseDTO);
     }
 }
