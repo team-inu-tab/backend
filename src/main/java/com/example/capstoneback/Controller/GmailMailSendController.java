@@ -14,17 +14,18 @@ public class GmailMailSendController {
     private final GmailMailSenderService mailSender;
 
     @PostMapping("/mails/send")
-    public ResponseEntity<String> sendEmail(
-            Authentication authentication,
-            @RequestBody EmailSendDTO emailSendDTO
-    ) {
-        System.out.println("mail send");
-        mailSender.sendEmail(
-                authentication,
-                emailSendDTO.getToEmail(),
-                emailSendDTO.getSubject(),
-                emailSendDTO.getBody()
-        );
-        return ResponseEntity.ok("이메일 전송 성공");
+    public ResponseEntity<String> sendEmail(Authentication authentication,
+                                            @RequestBody EmailSendDTO emailSendDTO) {
+        try {
+            mailSender.sendEmail(
+                    authentication,
+                    emailSendDTO.getToEmail(),
+                    emailSendDTO.getSubject(),
+                    emailSendDTO.getBody()
+            );
+            return ResponseEntity.ok("이메일 전송 성공");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("이메일 전송 실패: " + e.getMessage());
+        }
     }
 }
