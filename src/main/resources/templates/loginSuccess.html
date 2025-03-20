@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko-KR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success</title>
+</head>
+
+<body>
+    <h1>login Success</h1>
+    <h5>로그인 성공 후 refresh 필수!!</h5>
+    <button onclick="getHello()">get hello</button>
+    <button onclick="refresh()" style="color: orange;">refresh</button>
+    <button onclick="logout()" style="color: red;">logout</button>
+    <h3>개인 정보 저장 API</h3>
+    <button onclick="storeUserInfo()">store student info</button>
+    <button onclick="storeWorkerInfo()">store worker info</button>
+    <h3>메일 조회 API</h3>
+    <button onclick="getReceivedEmails()">get received emails</button>
+    <button onclick="getSentEmails()">get sent emails</button>
+    <button onclick="getSelfEmails()">get self emails</button>
+    <button onclick="getImportantEmails()">get important emails</button>
+    <button onclick="getScheduledEmails()">get scheduled emails</button>
+    <button onclick="getDraftEmails()">get draft emails</button>
+    <h3>파일 관련 API</h3>
+    <div>
+        <h5>파일 저장 테스트 API(파일 저장 이메일 id는 1로 놓음)</h5>
+        <input id="fileInput" type="file">
+        <button onclick="storeFile()">submit</button>
+    </div>
+    <br />
+    <div>
+        <h5>파일 조회 API</h5>
+        <input id="emailId" type="number" placeholder="이메일 id">
+        <input id="fileName" type="text" placeholder="파일 이름">
+        <button onclick="getFile()">get file</button>
+    </div>
+    <br />
+    <div>
+        <h5>메일 보내기</h5>
+        <input id="toEmail" type="email" placeholder="받는 사람 이메일">
+        <input id="subject" type="text" placeholder="제목">
+        <textarea id="body" placeholder="이메일 내용"></textarea>
+        <button onclick="sendEmail()">메일 보내기</button>
+    </div>
+    <br>
+    <script>
+        let accessToken = "";
+
+        async function getDraftEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/draft', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('임시 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('임시 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("임시 메일 수신 중 오류 발생")
+            }
+        }
+
+        async function getScheduledEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/schedule', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('예약 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('예약 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("예약 메일 수신 중 오류 발생")
+            }
+        }
+
+        async function getImportantEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/important', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('중요 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('중요 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("중요 메일 수신 중 오류 발생")
+            }
+        }
+
+        async function getSelfEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/self', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('내게 보낸 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('내게 보낸 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("내게 보낸 메일 수신 중 오류 발생")
+            }
+        }
+
+        async function getReceivedEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/receive', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('받은 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('받은 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("받은 메일 수신 중 오류 발생")
+            }
+        }
+
+        async function getSentEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/send', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('보낸 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('보낸 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("보낸 메일 수신 중 오류 발생")
+            }
+        }
+
+
+        async function getFile() {
+            const emailId = document.getElementById("emailId").value;
+            const fileName = document.getElementById("fileName").value;
+
+            try {
+                const response = await fetch(`http://localhost:8089/mails/${emailId}/file/${fileName}`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('파일 수신 성공');
+                } else {
+                    alert('파일 수신 실패');
+                }
+            } catch (error) {
+                alert("파일 수신 중 오류 발생")
+            }
+        }
+
+        async function storeFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('파일을 선택해주세요.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('http://localhost:8089/fileUploadSample', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: accessToken,
+                    },
+                    body: formData,
+                    credentials: "include"
+                });
+
+                if (response.ok) {
+                    alert('파일 업로드 성공');
+                } else {
+                    alert('파일 업로드 실패');
+                }
+            } catch (error) {
+                console.error('업로드 중 오류 발생:', error);
+                alert('파일 업로드 중 오류 발생');
+            }
+        }
+
+        function getHello() {
+            fetch("http://localhost:8089/hello", {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    alert(JSON.stringify(data))
+                })
+        }
+
+        function refresh() {
+            fetch("http://localhost:8089/oauth2/reissue", {
+                method: "POST",
+                credentials: "include"
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        alert("refresh done!")
+                        accessToken = res.headers.get("Authorization");
+                    } else {
+                        alert("refresh fail..")
+                    }
+                })
+        }
+
+        function storeUserInfo() {
+            fetch("http://localhost:8089/users/info/student", {
+                method: "post",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    studentDepartment: "컴퓨터공학부",
+                    studentNum: 201901630
+                })
+            }).then(res => {
+                if (res.status === 200) {
+                    alert('save success!')
+                } else {
+                    alert('save fail...')
+                }
+            })
+                .catch(error => alert(error))
+        }
+
+        function storeWorkerInfo() {
+            fetch("http://localhost:8089/users/info/worker", {
+                method: "post",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "company": "카카오",
+                    "workerDepartment": "개발",
+                    "position": "대리"
+                })
+            }).then(res => {
+                if (res.status === 200) {
+                    alert('save success!')
+                } else {
+                    alert('save fail...')
+                }
+            })
+        }
+
+        function logout() {
+            fetch("http://localhost:8089/oauth2/logout", {
+                method: "post",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken
+                }
+            }).then(res => {
+                if (res.status === 200) {
+                    alert("logout success!")
+                    window.location.href = "http://localhost:5500/testLoginPage.html"
+                }
+            })
+        }
+
+    async function sendEmail() {
+        const toEmail = document.getElementById("toEmail").value;
+        const subject = document.getElementById("subject").value;
+        const body = document.getElementById("body").value;
+
+        try {
+            const response = await fetch('http://localhost:8089/mails/send', {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: accessToken,
+                },
+                body: JSON.stringify({
+                    toEmail: toEmail,
+                    subject: subject,
+                    body: body
+                })
+            });
+
+            if (response.ok) {
+                alert('📩 메일 전송 성공!');
+            } else {
+                alert('❌ 메일 전송 실패');
+            }
+        } catch (error) {
+            alert("⚠ 메일 전송 중 오류 발생");
+        }
+    }
+    </script>
+</body>
+
+</html>

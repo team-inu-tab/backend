@@ -34,7 +34,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
-//	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -48,6 +47,12 @@ dependencies {
 	implementation 'com.google.api-client:google-api-client:2.7.2'
 	implementation 'com.google.oauth-client:google-oauth-client-jetty:1.38.0'
 	implementation 'com.google.apis:google-api-services-gmail:v1-rev20240520-2.0.0'
+	implementation 'com.google.auth:google-auth-library-oauth2-http:1.21.0'
+	implementation 'com.google.http-client:google-http-client-jackson2:1.42.3'
+
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'jakarta.mail:jakarta.mail-api:2.1.2'
+	implementation 'com.sun.mail:jakarta.mail:2.0.1'
 }
 
 tasks.named('test') {
