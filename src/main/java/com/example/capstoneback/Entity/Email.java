@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.List;
 
 @Getter
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Email {
 
@@ -43,6 +46,10 @@ public class Email {
     @Column(name = "scheduled_at")
     private LocalDateTime scheduledAt;
 
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @ManyToOne
     @JoinColumn
     private User user;
@@ -68,5 +75,10 @@ public class Email {
         this.isDraft = isDraft;
         this.scheduledAt = scheduledAt;
         this.user = user;
+    }
+
+    // 첫 로그인 후 Gmail 초기화 용도로만 사용
+    public void updateCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
