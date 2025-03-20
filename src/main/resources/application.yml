@@ -41,5 +41,4 @@ spring:
     ses:
       access-id: ${AWS_ACCESS_KEY_ID}
       secret-key: ${AWS_SECRET_ACCESS_KEY}
-      send-mail-to: iiiamst16@gmail.com
     region: ap-northeast-2

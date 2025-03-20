@@ -67,7 +67,7 @@ public class AmazonMailService {
 
     @Transactional
     public void receiveMail(EmailRequestDTO emailDto) {
-        // 수신자가 시스템 유저인지 확인
+
         LocalDateTime receivedAt;
         try {
             receivedAt = Instant.parse(emailDto.getTimestamp())
@@ -77,6 +77,7 @@ public class AmazonMailService {
             throw new IllegalArgumentException("Invalid timestamp format: " + emailDto.getTimestamp());
         }
 
+        // 수신자가 시스템 유저인지 확인
         User user = userRepository.findByEmail(emailDto.getReceiver()).orElse(null);
         if (user == null) {
             throw new IllegalArgumentException("User not found for email: " + emailDto.getReceiver());
