@@ -1,5 +1,5 @@
 server:
-    port: 8080
+    port: 8089
 spring:
   # .env import
   config:
@@ -32,3 +32,14 @@ spring:
               - https://mail.google.com/
   jwt:
     secret: ${JWT_SECRET}
+  servlet:
+    multipart:
+      max-file-size: 512MB
+      max-request-size: 512MB
+  # mail test
+  aws:
+    ses:
+      access-id: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+      send-mail-to: iiiamst16@gmail.com
+    region: ap-northeast-2
