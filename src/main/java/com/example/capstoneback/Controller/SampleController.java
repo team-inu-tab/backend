@@ -1,7 +1,6 @@
 package com.example.capstoneback.Controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,8 +13,6 @@ import java.util.Map;
 @Controller
 @RequiredArgsConstructor
 public class SampleController {
-    private final Environment env;
-
     // cd test 2
     @GetMapping("/")
     public String sampleMapping() {
