@@ -70,7 +70,7 @@ public class GmailMailSenderService {
 
         System.out.println("Message id: " + message.getId());
         // 전체 JSON을 출력해볼 수도 있음
-        // System.out.println(message.toPrettyString());
+        System.out.println(message.toPrettyString());
         return message;
     }
 

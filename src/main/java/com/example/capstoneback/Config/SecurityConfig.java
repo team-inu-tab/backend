@@ -66,7 +66,7 @@ public class SecurityConfig {
                                 configuration.setAllowedOrigins(Collections.singletonList(FRONT_ADDRESS));
 
                                 //허용하는 요청 종류(Get, Post...) 설정
-                                configuration.setAllowedMethods(Collections.singletonList("*"));
+                                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
                                 //서버와 다른 오리진에서는 credential 설정을 하지 않으면 Authorization 헤더를 포함하여 전송할 수가 없음
                                 configuration.setAllowCredentials(true);
