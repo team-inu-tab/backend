@@ -27,7 +27,7 @@ public class GmailMailSendController {
             if (token == null) {
                 return ResponseEntity.badRequest().body("Authorization 헤더가 잘못되었습니다.");
             }
-
+            System.out.println(token);
             mailSender.sendEmailWithAccessToken(
                     token,
                     emailSendDTO.getToEmail(),
