@@ -64,7 +64,7 @@ public class OAuth2Controller {
                 .maxAge(Duration.ofDays(1))
                 .build();
 
-        response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
