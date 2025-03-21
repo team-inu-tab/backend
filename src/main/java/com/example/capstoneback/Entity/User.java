@@ -1,10 +1,7 @@
 package com.example.capstoneback.Entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -42,6 +39,9 @@ public class User {
     private String company;
     private String position;
 
+    //access token
+    private String accessToken;
+
     @CreatedDate
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -53,11 +53,12 @@ public class User {
     private List<Email> emails = new ArrayList<>();
 
     @Builder
-    public User(String name, String email, String role, String username) {
+    public User(String name, String email, String role, String username, String accessToken) {
         this.name = name;
         this.email = email;
         this.role = role;
         this.username = username;
+        this.accessToken = accessToken;
     }
 
     public void updateEmail(String email) {
