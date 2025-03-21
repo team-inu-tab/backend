@@ -25,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -63,7 +64,7 @@ public class SecurityConfig {
                                 CorsConfiguration configuration = new CorsConfiguration();
 
                                 //요청 허용하는 오리진 설정
-                                configuration.setAllowedOrigins(Collections.singletonList(FRONT_ADDRESS));
+                                configuration.setAllowedOrigins(List.of("https://maeilmail.co.kr"));
 
                                 //허용하는 요청 종류(Get, Post...) 설정
                                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
