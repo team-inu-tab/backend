@@ -16,6 +16,7 @@ public class GmailMailSendController {
     @PostMapping("/mails/send")
     public ResponseEntity<String> sendEmail(Authentication authentication,
                                             @RequestBody EmailSendDTO emailSendDTO) {
+        System.out.println(authentication.toString());
         try {
             mailSender.sendEmail(
                     authentication,
