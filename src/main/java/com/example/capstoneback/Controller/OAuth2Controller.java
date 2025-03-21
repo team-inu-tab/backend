@@ -52,25 +52,30 @@ public class OAuth2Controller {
 
         //검증 성공했다면
         //헤더에 access token 저장 및 리프레시 토큰 쿠키 저장
-        //response.setHeader("Authorization", "Bearer " + responseDTO.getAccessToken());
-        //response.addCookie(createCookie("refresh-token", responseDTO.getRefreshToken(), 24*60*60, "/"));
-
         response.setHeader("Authorization", "Bearer " + responseDTO.getAccessToken());
-        ResponseCookie refreshCookie = createCookie("refresh-token", responseDTO.getRefreshToken(), 24 * 60 * 60, "/");
+//        response.addCookie(createCookie("refresh-token", responseDTO.getRefreshToken(), 24*60*60, "/"));
+
         // Set-Cookie 헤더로 쿠키 추가
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-        System.out.println(refreshCookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh-token", responseDTO.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None") // 반드시 필요
+                .path("/")
+                .maxAge(Duration.ofDays(1))
+                .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     //쿠키 생성 메서드
-    public ResponseCookie createCookie(String key, String value, int maxAge, String path) {
-        return ResponseCookie.from(key, value)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .maxAge(Duration.ofSeconds(maxAge))
-                .path(path)
-                .build();
-    }
+//    public Cookie createCookie(String key, String value, int maxAge, String path){
+//        Cookie cookie = new Cookie(key, value);
+//        cookie.setMaxAge(maxAge);
+//        cookie.setSecure(true); //https일 경우 활성화
+//        cookie.setPath(path); //쿠키를 사용할 수 있는 패스 설정
+//        cookie.setHttpOnly(true); // 자바스크립트가 해당 쿠키를 가져가지 못하게 함
+//
+//        return cookie;
+//    }
 }
