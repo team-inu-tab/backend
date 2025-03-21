@@ -52,14 +52,14 @@ public class OAuth2Controller {
 
         //검증 성공했다면
         //헤더에 access token 저장 및 리프레시 토큰 쿠키 저장
-        response.setHeader("Authorization", "Bearer " + responseDTO.getAccessToken());
+//        response.setHeader("Authorization", "Bearer " + responseDTO.getAccessToken());
 //        response.addCookie(createCookie("refresh-token", responseDTO.getRefreshToken(), 24*60*60, "/"));
 
         // Set-Cookie 헤더로 쿠키 추가
         ResponseCookie refreshCookie = ResponseCookie.from("refresh-token", responseDTO.getRefreshToken())
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("None") // 반드시 필요
+                .sameSite("None")
                 .path("/")
                 .maxAge(Duration.ofDays(1))
                 .build();
