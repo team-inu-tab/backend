@@ -66,7 +66,7 @@ public class GmailMailSenderService {
         // MimeMessage → com.google.api.services.gmail.model.Message 로 변환
         Message message = createMessageWithEmail(emailContent);
         // Gmail API 송신
-        message = service.users().messages().send(userId, message).execute();
+        message = service.users().messages().send("me", message).execute();
 
         System.out.println("Message id: " + message.getId());
         // 전체 JSON을 출력

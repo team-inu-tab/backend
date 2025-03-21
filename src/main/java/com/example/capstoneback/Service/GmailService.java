@@ -118,7 +118,7 @@ public class GmailService {
 
     private void saveSentGmail(Gmail gmail, User user) throws IOException {
         // 보낸 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list(user.getUsername())
+        List<Message> inboxMessages = gmail.users().messages().list("me")
                 .setMaxResults(5L)
                 .setLabelIds(List.of("SENT"))
                 .execute()
