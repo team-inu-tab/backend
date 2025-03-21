@@ -1,7 +1,6 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.Entity.User;
-import com.example.capstoneback.Jwt.JwtUtil;
 import com.example.capstoneback.Repository.UserRepository;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
@@ -10,12 +9,10 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.Properties;
 
@@ -25,7 +22,6 @@ public class GmailMailSenderService {
 
     private final GmailServiceBuilder gmailServiceBuilder;
     private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
 
     /**
      * 1) MimeMessage를 만드는 헬퍼 함수
@@ -81,38 +77,27 @@ public class GmailMailSenderService {
     /**
      * 외부에서 호출되는 실제 메일 보내기
      */
-    public void sendEmailWithAccessToken(String tokenString, String toEmail, String subject, String body) {
+    public void sendEmail(Authentication authentication, String toEmail, String subject, String body, String token) {
         try {
-            // 토큰 객체로 변환
-            OAuth2AccessToken oAuth2AccessToken = convertStringToOAuth2AccessToken(tokenString);
-
-            // 사용자 찾기
-            String username = jwtUtil.getUsernameFromToken(tokenString); // 토큰에서 username 추출하는 유틸
+            System.out.println("1번1번1번1번1번1번1번1번1번1번1번1번1번");
+            String username = authentication.getName();
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
 
-            // Gmail 서비스 생성
-            Gmail service = gmailServiceBuilder.getGmailService(oAuth2AccessToken);
+            // 서버 저장된 Refresh Token으로 Gmail API 인증
+            System.out.println("2번2번2번2번2번2번2번2번2번2번2번2번2번2번");
+            Gmail service = gmailServiceBuilder.getGmailService(user);
 
-            // 이메일 작성 및 전송
-            MimeMessage emailContent = createEmail(user.getEmail(), toEmail, subject, body);
-            Message response = sendMessage(service, "me", emailContent);
+            MimeMessage emailContent = createEmail(
+                    user.getEmail(), toEmail, subject, body
+            );
 
-            System.out.println("✅ 이메일 전송 성공. ID: " + response.getId());
+            Message message = sendMessage(service, user.getUsername(), emailContent);
+            System.out.println("✅ 이메일 전송 성공. ID: " + message.getId());
+
         } catch (Exception e) {
-            throw new RuntimeException("이메일 전송 실패: " + e.getMessage(), e);
+            e.printStackTrace();
+            throw new RuntimeException("❌ 이메일 전송 실패: " + e.getMessage(), e);
         }
-    }
-
-    private OAuth2AccessToken convertStringToOAuth2AccessToken(String token) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(3600);
-
-        return new OAuth2AccessToken(
-                OAuth2AccessToken.TokenType.BEARER,
-                token,
-                now,
-                expiresAt
-        );
     }
 }

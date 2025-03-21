@@ -26,39 +26,39 @@ public class GoogleCredentialService {
     private static final String CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
     private static final String CLIENT_SECRET = "YOUR_GOOGLE_CLIENT_SECRET";
 
-    public Credential getUserGoogleCredentials(String username) {
-        // 1) User 조회
+    public Credential getCredentialFromRefreshToken(String username) {
+        // 1. 사용자 정보 조회
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("사용자 정보가 없습니다."));
+                .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
 
-        // 2) 가장 최근에 생성된(id가 가장 큰)
+        // 2. 저장된 최신 토큰 가져오기
         Token token = tokenRepository.findTopByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new RuntimeException("해당 사용자의 토큰이 존재하지 않습니다."));
 
-        // 3) RefreshToken 확인
         String refreshToken = token.getRefreshToken();
         if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new RuntimeException("리프레시 토큰이 비어 있습니다.");
+            throw new RuntimeException("refresh token이 비어 있습니다.");
         }
 
-        // 4) Google Credential 생성
+        // 3. CredentialRefreshListener 정의
         CredentialRefreshListener refreshListener = new CredentialRefreshListener() {
             @Override
             public void onTokenResponse(Credential credential, TokenResponse tokenResponse) throws IOException {
-                // Access Token이 갱신되면서 새로운 Refresh Token이 온 경우
-                String newRefreshToken = credential.getRefreshToken();
-                if (newRefreshToken != null && !newRefreshToken.isEmpty()) {
-                    token.setRefreshToken(newRefreshToken);
+                // 새로운 RefreshToken이 오면 DB에 갱신
+                if (tokenResponse.getRefreshToken() != null) {
+                    token.setRefreshToken(tokenResponse.getRefreshToken());
                     tokenRepository.save(token);
                 }
             }
 
             @Override
             public void onTokenErrorResponse(Credential credential, TokenErrorResponse tokenErrorResponse) throws IOException {
-                System.err.println("토큰 재발급 오류: " + tokenErrorResponse.getErrorDescription());
+                String error = tokenErrorResponse == null ? "Unknown error" : tokenErrorResponse.getErrorDescription();
+                System.err.println("⚠️ Google Token Error: " + error);
             }
         };
 
+        // 4. GoogleCredential 생성 및 리턴
         return new GoogleCredential.Builder()
                 .setTransport(new NetHttpTransport())
                 .setJsonFactory(JacksonFactory.getDefaultInstance())
@@ -68,3 +68,4 @@ public class GoogleCredentialService {
                 .setRefreshToken(refreshToken);
     }
 }
+

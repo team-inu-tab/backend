@@ -7,12 +7,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.auth.http.HttpCredentialsAdapter;
-import com.google.auth.oauth2.AccessToken;
-import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,14 +19,12 @@ public class GmailServiceBuilder {
 
     private final GoogleCredentialService googleCredentialService;
 
-    public Gmail getGmailService(OAuth2AccessToken oAuth2AccessToken) throws Exception {
+    public Gmail getGmailService(User user) throws Exception {
 
-        GoogleCredentials credentials = GoogleCredentials.create(
-                new AccessToken(oAuth2AccessToken.getTokenValue(),
-                        null));
+        Credential credential = googleCredentialService.getCredentialFromRefreshToken(user.getUsername());
 
-        return new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+
+        return new Gmail.Builder(httpTransport, jsonFactory, credential)
                 .setApplicationName("My Gmail App")
                 .build();
     }
