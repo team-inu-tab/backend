@@ -70,7 +70,7 @@ public class User {
     }
 
     public void updateAccessToken(String accessToken) {
-        this.name = accessToken;
+        this.accessToken = accessToken;
     }
 
 
