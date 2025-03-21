@@ -77,7 +77,7 @@ public class GmailMailSenderService {
     /**
      * 외부에서 호출되는 실제 메일 보내기
      */
-    public void sendEmail(Authentication authentication, String toEmail, String subject, String body, String token) {
+    public void sendEmail(Authentication authentication, String toEmail, String subject, String body) {
         try {
             System.out.println("1번1번1번1번1번1번1번1번1번1번1번1번1번");
             String username = authentication.getName();
