@@ -1,30 +1,31 @@
 package com.example.capstoneback.Service;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.example.capstoneback.Entity.User;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class GmailServiceBuilder {
     private static final String APPLICATION_NAME = "My Gmail Integration App";
-    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    final static JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+    final static HttpTransport httpTransport = new NetHttpTransport();
 
     private final GoogleCredentialService googleCredentialService;
 
-    public Gmail getGmailService(String username) throws Exception {
-        // 위에서 만든 getUserGoogleCredentials() 로 Credential 생성
-        var credential = googleCredentialService.getUserGoogleCredentials(username);
+    public Gmail getGmailService(User user) throws Exception {
 
-        return new Gmail.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                JSON_FACTORY,
-                credential
-        )
-                .setApplicationName(APPLICATION_NAME)
+        Credential credential = googleCredentialService.getUserGoogleCredentials(user.getUsername());
+
+        return new Gmail.Builder(httpTransport, jsonFactory, credential)
+                .setApplicationName("My Gmail App")
                 .build();
     }
 }

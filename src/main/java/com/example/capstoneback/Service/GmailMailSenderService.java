@@ -69,7 +69,7 @@ public class GmailMailSenderService {
         message = service.users().messages().send(userId, message).execute();
 
         System.out.println("Message id: " + message.getId());
-        // 전체 JSON을 출력해볼 수도 있음
+        // 전체 JSON을 출력
         System.out.println(message.toPrettyString());
         return message;
     }
@@ -83,21 +83,15 @@ public class GmailMailSenderService {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
 
-            // 1) 구글 Gmail 서비스 생성
-            Gmail service = gmailServiceBuilder.getGmailService(username);
+            // 서버 저장된 Refresh Token으로 Gmail API 인증
+            Gmail service = gmailServiceBuilder.getGmailService(user);
 
-            // 2) MimeMessage 구성
-            //    'from' 은 OAuth 연동된 사용자 계정(=user.getEmail())
             MimeMessage emailContent = createEmail(
-                    user.getEmail(),
-                    toEmail,
-                    subject,
-                    body
+                    user.getEmail(), toEmail, subject, body
             );
 
-            // 3) 이메일 전송
-            Message response = sendMessage(service, "me", emailContent);
-            System.out.println("✅ 이메일 전송 성공. ID: " + response.getId());
+            Message message = sendMessage(service, user.getUsername(), emailContent);
+            System.out.println("✅ 이메일 전송 성공. ID: " + message.getId());
 
         } catch (Exception e) {
             e.printStackTrace();
