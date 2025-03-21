@@ -59,6 +59,7 @@ public class OAuth2Controller {
         ResponseCookie refreshCookie = createCookie("refresh-token", responseDTO.getRefreshToken(), 24 * 60 * 60, "/");
         // Set-Cookie 헤더로 쿠키 추가
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        System.out.println(refreshCookie.toString());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
