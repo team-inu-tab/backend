@@ -69,6 +69,11 @@ public class User {
         this.name = name;
     }
 
+    public void updateAccessToken(String accessToken) {
+        this.name = accessToken;
+    }
+
+
     public void updateStudentInfo(String studentDepartment, Integer studentNum){
         this.studentDepartment = studentDepartment;
         this.studentNum = studentNum;

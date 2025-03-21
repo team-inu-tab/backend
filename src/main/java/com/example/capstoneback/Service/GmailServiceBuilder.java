@@ -1,7 +1,6 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.Entity.User;
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -20,10 +19,8 @@ public class GmailServiceBuilder {
     final static JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
     final static HttpTransport httpTransport = new NetHttpTransport();
 
-    private final GoogleCredentialService googleCredentialService;
-
     public Gmail getGmailService(User user) throws Exception {
-        System.out.println(user.getAccessToken());
+        System.out.println("accessToken info" + user.getAccessToken());
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
 
 
