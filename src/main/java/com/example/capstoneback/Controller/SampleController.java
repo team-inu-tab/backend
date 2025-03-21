@@ -14,7 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SampleController {
 
-    // cd test 2
+    // cd test 3
     @GetMapping("/")
     public String sampleMapping() {
         return "sample";
