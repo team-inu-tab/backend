@@ -79,7 +79,6 @@ public class GmailMailSenderService {
      */
     public void sendEmail(Authentication authentication, String toEmail, String subject, String body) {
         try {
-            System.out.println("1번1번1번1번1번1번1번1번1번1번1번1번1번");
             String username = authentication.getName();
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));

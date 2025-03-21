@@ -23,9 +23,8 @@ public class GmailServiceBuilder {
     private final GoogleCredentialService googleCredentialService;
 
     public Gmail getGmailService(User user) throws Exception {
-
-        GoogleCredentials credentials = GoogleCredentials.create(
-                new AccessToken(user.getAccessToken(), null));
+        System.out.println(user.getAccessToken());
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
 
 
         return new Gmail.Builder(httpTransport, jsonFactory, null)
