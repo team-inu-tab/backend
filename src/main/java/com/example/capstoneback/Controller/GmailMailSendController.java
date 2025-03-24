@@ -17,16 +17,12 @@ public class GmailMailSendController {
     public ResponseEntity<String> sendEmail(Authentication authentication,
                                             @RequestBody EmailSendDTO emailSendDTO) {
         System.out.println(authentication.toString());
-        try {
-            mailSender.sendEmail(
-                    authentication,
-                    emailSendDTO.getToEmail(),
-                    emailSendDTO.getSubject(),
-                    emailSendDTO.getBody()
-            );
-            return ResponseEntity.ok("이메일 전송 성공");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("이메일 전송 실패: " + e.getMessage());
-        }
+        mailSender.sendEmail(
+                authentication,
+                emailSendDTO.getToEmail(),
+                emailSendDTO.getSubject(),
+                emailSendDTO.getBody()
+        );
+        return ResponseEntity.ok("이메일 전송 성공");
     }
 }

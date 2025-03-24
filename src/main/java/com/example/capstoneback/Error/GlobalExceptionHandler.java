@@ -84,4 +84,11 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
         ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
     }
+
+    // db에 없는 사용자로 email을 보낼 때 발생하는 에러 처리
+    @ExceptionHandler(GmailSendFailedException.class)
+    public ResponseEntity<ErrorResponse> handleEmailSendFailedException(GmailSendFailedException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
+        return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
 }

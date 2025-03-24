@@ -1,6 +1,8 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.Entity.User;
+import com.example.capstoneback.Error.ErrorCode;
+import com.example.capstoneback.Error.GmailSendFailedException;
 import com.example.capstoneback.Repository.UserRepository;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
@@ -84,7 +86,6 @@ public class GmailMailSenderService {
                     .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
 
             // 서버 저장된 Refresh Token으로 Gmail API 인증
-            System.out.println("2번2번2번2번2번2번2번2번2번2번2번2번2번2번");
             Gmail service = gmailServiceBuilder.getGmailService(user);
 
             MimeMessage emailContent = createEmail(
@@ -92,11 +93,11 @@ public class GmailMailSenderService {
             );
 
             Message message = sendMessage(service, user.getUsername(), emailContent);
-            System.out.println("✅ 이메일 전송 성공. ID: " + message.getId());
+            System.out.println("이메일 전송 성공. ID: " + message.getId());
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("❌ 이메일 전송 실패: " + e.getMessage(), e);
+            throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
         }
     }
 }
