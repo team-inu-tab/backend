@@ -82,7 +82,7 @@ public class GmailService {
                         break;
                     case "Date":
                         // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "");
+                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
                         DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
                         ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
                         ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
@@ -145,7 +145,7 @@ public class GmailService {
                         break;
                     case "Date":
                         // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "");
+                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
                         DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
                         ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
                         ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
