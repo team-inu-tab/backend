@@ -64,5 +64,4 @@ public class OAuth2Controller {
 
         return cookie;
     }
-
 }

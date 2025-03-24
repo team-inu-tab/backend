@@ -36,6 +36,11 @@ public class JwtUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
 
+    // 토큰으로부터 유저네임
+    public String getUsernameFromToken(String token) {
+        return getUsername(token);
+    }
+
     //jwt token을 생성
     public String createJwt(String category, String username, String role, Long expiredMs){
         return Jwts.builder()

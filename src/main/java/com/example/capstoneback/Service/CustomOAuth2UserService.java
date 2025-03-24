@@ -59,6 +59,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .name(oAuth2Response.getName())
                     .email(oAuth2Response.getEmail())
                     .role("ROLE_USER")
+                    .accessToken(oAuth2User.toString())
                     .build();
 
             userRepository.save(user);
@@ -85,6 +86,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             //이메일과 이름 정보가 수정되었을 수 있으니 기존의 값 업데이트
             user.updateEmail(oAuth2Response.getEmail());
             user.updateName(oAuth2Response.getName());
+            String accessToken = userRequest.getAccessToken().getTokenValue();
+            user.updateAccessToken(accessToken);
 
             userRepository.save(user);
 

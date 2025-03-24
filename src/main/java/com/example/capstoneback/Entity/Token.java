@@ -1,10 +1,7 @@
 package com.example.capstoneback.Entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +15,7 @@ public class Token {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Setter
     @Column(name = "refresh_token", nullable = false)
     private String refreshToken;
 
