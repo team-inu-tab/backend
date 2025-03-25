@@ -27,8 +27,8 @@ public class EmailController {
     }
 
     @GetMapping("/mails/send")
-    public ResponseEntity<List<SentEmailResponseDTO>> getSentEmails(Authentication authentication){
-        List<SentEmailResponseDTO> responseDTO = emailService.getSentEmails(authentication);
+    public ResponseEntity<List<SentEmailResponseDTO>> getSentEmails(Authentication authentication) throws IOException {
+        List<SentEmailResponseDTO> responseDTO = gmailService.getSentGmail(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 

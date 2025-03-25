@@ -52,30 +52,30 @@ public class EmailService {
 //                .build()).toList();
 //    }
 
-    public List<SentEmailResponseDTO> getSentEmails(Authentication authentication) {
-        String username = authentication.getName();
-
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if(op_user.isEmpty()){
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-
-        // 최근에 보낸 이메일 10개 조회
-        List<Email> emails = emailRepository.findByUserAndSenderAndIsDraftIsFalseOrderBySendAtDesc(user, user.getEmail(), Limit.of(10));
-
-        return emails.stream().map(email -> SentEmailResponseDTO.builder()
-                .id(email.getId())
-                .title(email.getTitle())
-                .content(email.getContent())
-                .receiver(email.getReceiver())
-                .sendAt(email.getSendAt())
-                .isImportant(email.getIsImportant())
-                .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
-                .build()).toList();
-    }
+//    public List<SentEmailResponseDTO> getSentEmails(Authentication authentication) {
+//        String username = authentication.getName();
+//
+//        // 유저 확인
+//        Optional<User> op_user = userRepository.findByUsername(username);
+//        if(op_user.isEmpty()){
+//            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+//        }
+//
+//        User user = op_user.get();
+//
+//        // 최근에 보낸 이메일 10개 조회
+//        List<Email> emails = emailRepository.findByUserAndSenderAndIsDraftIsFalseOrderBySendAtDesc(user, user.getEmail(), Limit.of(10));
+//
+//        return emails.stream().map(email -> SentEmailResponseDTO.builder()
+//                .id(email.getId())
+//                .title(email.getTitle())
+//                .content(email.getContent())
+//                .receiver(email.getReceiver())
+//                .sendAt(email.getSendAt())
+//                .isImportant(email.getIsImportant())
+//                .isFileExist(multiFileRepository.existsByEmailId(email.getId()))
+//                .build()).toList();
+//    }
 
     public List<SelfEmailResponseDTO> getSelfEmails(Authentication authentication){
         String username = authentication.getName();
