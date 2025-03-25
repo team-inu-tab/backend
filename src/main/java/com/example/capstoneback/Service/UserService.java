@@ -27,7 +27,7 @@ public class UserService {
         User user = getUserFromHeaderToken(request);
 
         //유저 정보 업데이트
-        user.updateStudentInfo(studentInfo.getStudentDepartment(), studentInfo.getStudentNum());
+        user.updateStudentInfo(studentInfo.getSchoolName() ,studentInfo.getStudentDepartment(), studentInfo.getStudentNum());
         userRepository.save(user);
     }
 
