@@ -1,19 +1,25 @@
 package com.example.capstoneback.Service;
 
+import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
 import com.example.capstoneback.Entity.Email;
 import com.example.capstoneback.Entity.User;
+import com.example.capstoneback.Error.ErrorCode;
+import com.example.capstoneback.Error.UserDoesntExistException;
 import com.example.capstoneback.Repository.EmailRepository;
+import com.example.capstoneback.Repository.UserRepository;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +29,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +40,7 @@ import java.util.regex.Pattern;
 public class GmailService {
 
     private final EmailRepository emailRepository;
+    private final UserRepository userRepository;
 
     //Http 요청 객체와 Json 변환 객체 생성
     final static HttpTransport httpTransport = new NetHttpTransport();
@@ -178,4 +187,93 @@ public class GmailService {
             emailRepository.save(email);
         }
     }
+
+    public List<ReceivedEmailResponseDTO> getReceivedGmail(Authentication authentication) throws IOException {
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if (op_user.isEmpty()) {
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        // OAuth2 AccessToken을 GoogleCredentials로 변환
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
+
+        //Gmail api 요청 객체 생성
+        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
+                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+                .setApplicationName("maeil-mail")
+                .build();
+
+        // 받은 이메일 리스트 요청
+        List<Message> inboxMessages = gmail.users().messages().list("me")
+                .setMaxResults(5L)
+                .setLabelIds(List.of("INBOX"))
+                .execute()
+                .getMessages();
+
+        List<ReceivedEmailResponseDTO> receivedEmailDTOs = new ArrayList<>();
+
+        for (Message messageInfo : inboxMessages) {
+            // 단일 이메일 조회
+            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            String title = null, sender = null, from = null;
+            LocalDateTime date = null;
+
+            // 헤더에서 제목, 발신자, 수신 날짜 확인
+            for (MessagePartHeader header : detailMessage.getPayload().getHeaders()) {
+                switch (header.getName()) {
+                    case "Subject":
+                        title = header.getValue();
+                        break;
+                    case "From":
+                        from = header.getValue();
+                        break;
+                    case "Date":
+                        // Date를 LocalDateTime 타입에 맞게 변환
+                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
+                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+                        date = koreaTime.toLocalDateTime();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            String id = detailMessage.getId();
+            String content = detailMessage.getSnippet();
+            List<String> labelIds = detailMessage.getLabelIds();
+            boolean isFileExist = false;
+
+            List<MessagePart> messageParts = detailMessage.getPayload().getParts();
+
+            if(messageParts != null){
+                for(MessagePart messagePart : messageParts){
+                    if(messagePart.getFilename().isEmpty()){
+                        continue;
+                    }
+                    isFileExist = true;
+                }
+            }
+
+            receivedEmailDTOs.add(ReceivedEmailResponseDTO.builder()
+                    .id(id)
+                    .title(title)
+                    .content(content)
+                    .sender(from)
+                    .receiveAt(date)
+                    .isStarred(labelIds.contains("STARRED"))
+                    .isFileExist(isFileExist)
+                    .build()
+            );
+        }
+
+        return receivedEmailDTOs;
+    }
+
 }

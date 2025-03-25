@@ -2,6 +2,7 @@ package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.*;
 import com.example.capstoneback.Service.EmailService;
+import com.example.capstoneback.Service.GmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -16,10 +18,11 @@ import java.util.List;
 public class EmailController {
 
     private final EmailService emailService;
+    private final GmailService gmailService;
 
     @GetMapping("/mails/receive")
-    public ResponseEntity<List<ReceivedEmailResponseDTO>> getReceivedEmails(Authentication authentication){
-        List<ReceivedEmailResponseDTO> responseDTO = emailService.getReceivedEmails(authentication);
+    public ResponseEntity<List<ReceivedEmailResponseDTO>> getReceivedEmails(Authentication authentication) throws IOException {
+        List<ReceivedEmailResponseDTO> responseDTO = gmailService.getReceivedGmail(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
