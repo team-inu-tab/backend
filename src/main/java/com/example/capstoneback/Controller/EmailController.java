@@ -39,8 +39,8 @@ public class EmailController {
     }
 
     @GetMapping("/mails/important")
-    public ResponseEntity<List<ImportantEmailResponseDTO>> getImportantEmails(Authentication authentication){
-        List<ImportantEmailResponseDTO> responseDTO = emailService.getImportantEmails(authentication);
+    public ResponseEntity<List<ImportantEmailResponseDTO>> getImportantEmails(Authentication authentication) throws IOException {
+        List<ImportantEmailResponseDTO> responseDTO = gmailService.getImportantGmail(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
