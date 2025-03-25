@@ -210,7 +210,7 @@ public class GmailService {
 
         // 받은 이메일 리스트 요청
         List<Message> inboxMessages = gmail.users().messages().list("me")
-                .setMaxResults(5L)
+                .setMaxResults(10L)
                 .setLabelIds(List.of("INBOX"))
                 .execute()
                 .getMessages();
