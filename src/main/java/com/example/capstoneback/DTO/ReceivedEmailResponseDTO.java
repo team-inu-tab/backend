@@ -14,17 +14,17 @@ public class ReceivedEmailResponseDTO {
     private String content;
     private String sender;
     private LocalDateTime receiveAt;
-    private Boolean isStarred;
+    private Boolean isImportant;
     private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public ReceivedEmailResponseDTO(String id, String title, String content, String sender, LocalDateTime receiveAt, Boolean isStarred, List<HashMap<String, String>> fileNameList) {
+    public ReceivedEmailResponseDTO(String id, String title, String content, String sender, LocalDateTime receiveAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.sender = sender;
         this.receiveAt = receiveAt;
-        this.isStarred = isStarred;
+        this.isImportant = isImportant;
         this.fileNameList = fileNameList;
     }
 }

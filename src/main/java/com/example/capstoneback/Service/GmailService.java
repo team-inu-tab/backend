@@ -1,5 +1,6 @@
 package com.example.capstoneback.Service;
 
+import com.example.capstoneback.DTO.ImportantEmailResponseDTO;
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
 import com.example.capstoneback.DTO.SelfEmailResponseDTO;
 import com.example.capstoneback.DTO.SentEmailResponseDTO;
@@ -257,7 +258,7 @@ public class GmailService {
                     .content(detailMessage.getSnippet())
                     .sender(from)
                     .receiveAt(date)
-                    .isStarred(labelIds.contains("STARRED"))
+                    .isImportant(labelIds.contains("STARRED"))
                     .fileNameList(fileNameList)
                     .build()
             );
@@ -333,7 +334,7 @@ public class GmailService {
                     .content(detailMessage.getSnippet())
                     .receiver(to)
                     .sendAt(date)
-                    .isStarred(labelIds.contains("STARRED"))
+                    .isImportant(labelIds.contains("STARRED"))
                     .fileNameList(fileNameList)
                     .build()
             );
@@ -405,7 +406,7 @@ public class GmailService {
                     .title(title)
                     .content(detailMessage.getSnippet())
                     .sendAt(date)
-                    .isStarred(labelIds.contains("STARRED"))
+                    .isImportant(labelIds.contains("STARRED"))
                     .fileNameList(fileNameList)
                     .build()
             );
@@ -413,6 +414,8 @@ public class GmailService {
 
         return selfEmailDTOs;
     }
+
+    public List<ImportantEmailResponseDTO>
 
     // Message에서 fileName과 attachmentId로 구성된 HashMap 리스트를 추출해서 반환하는 메서드
     private static List<HashMap<String, String>> getFileNameList(Message detailMessage) {

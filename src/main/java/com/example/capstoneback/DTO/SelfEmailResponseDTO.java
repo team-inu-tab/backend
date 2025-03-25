@@ -13,16 +13,16 @@ public class SelfEmailResponseDTO {
     private String title;
     private String content;
     private LocalDateTime sendAt;
-    private Boolean isStarred;
+    private Boolean isImportant;
     private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public SelfEmailResponseDTO(String id, String title, String content, LocalDateTime sendAt, Boolean isStarred, List<HashMap<String, String>> fileNameList) {
+    public SelfEmailResponseDTO(String id, String title, String content, LocalDateTime sendAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.sendAt = sendAt;
-        this.isStarred = isStarred;
+        this.isImportant = isImportant;
         this.fileNameList = fileNameList;
     }
 }
