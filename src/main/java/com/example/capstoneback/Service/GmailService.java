@@ -1,6 +1,7 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.DTO.ReceivedEmailResponseDTO;
+import com.example.capstoneback.DTO.SelfEmailResponseDTO;
 import com.example.capstoneback.DTO.SentEmailResponseDTO;
 import com.example.capstoneback.Entity.Email;
 import com.example.capstoneback.Entity.User;
@@ -287,7 +288,7 @@ public class GmailService {
                 .setApplicationName("maeil-mail")
                 .build();
 
-        // 받은 이메일 리스트 요청
+        // 보낸 이메일 리스트 요청
         List<Message> inboxMessages = gmail.users().messages().list("me")
                 .setMaxResults(10L)
                 .setLabelIds(List.of("SENT"))
@@ -338,6 +339,79 @@ public class GmailService {
             );
         }
         return sentEmailDTOs;
+    }
+
+    public List<SelfEmailResponseDTO> getSelfGmail(Authentication authentication) throws IOException {
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if (op_user.isEmpty()) {
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        // OAuth2 AccessToken을 GoogleCredentials로 변환
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
+
+        //Gmail api 요청 객체 생성
+        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
+                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+                .setApplicationName("maeil-mail")
+                .build();
+
+        // 내게 보낸 이메일 리스트 요청
+        List<Message> inboxMessages = gmail.users().messages().list("me")
+                .setMaxResults(10L)
+                .setLabelIds(List.of("SENT", "INBOX"))
+                .execute()
+                .getMessages();
+
+        List<SelfEmailResponseDTO> selfEmailDTOs = new ArrayList<>();
+
+        for(Message messageInfo : inboxMessages) {
+            // 단일 이메일 조회
+            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            String title = null, to = null;
+            LocalDateTime date = null;
+
+            // 헤더에서 제목, 수신자, 발신 날짜 확인
+            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
+                switch (header.getName()){
+                    case "Subject":
+                        title = header.getValue(); break;
+                    case "To":
+                        to = header.getValue();
+                        break;
+                    case "Date":
+                        // Date를 LocalDateTime 타입에 맞게 변환
+                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
+                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+                        date = koreaTime.toLocalDateTime();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            List<String> labelIds = detailMessage.getLabelIds();
+            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
+
+            selfEmailDTOs.add(SelfEmailResponseDTO.builder()
+                    .id(detailMessage.getId())
+                    .title(title)
+                    .content(detailMessage.getSnippet())
+                    .sendAt(date)
+                    .isStarred(labelIds.contains("STARRED"))
+                    .fileNameList(fileNameList)
+                    .build()
+            );
+        }
+
+        return selfEmailDTOs;
     }
 
     // Message에서 fileName과 attachmentId로 구성된 HashMap 리스트를 추출해서 반환하는 메서드

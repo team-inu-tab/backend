@@ -33,8 +33,8 @@ public class EmailController {
     }
 
     @GetMapping("/mails/self")
-    public ResponseEntity<List<SelfEmailResponseDTO>> getSelfEmail(Authentication authentication){
-        List<SelfEmailResponseDTO> responseDTO = emailService.getSelfEmails(authentication);
+    public ResponseEntity<List<SelfEmailResponseDTO>> getSelfEmail(Authentication authentication) throws IOException {
+        List<SelfEmailResponseDTO> responseDTO = gmailService.getSelfGmail(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
