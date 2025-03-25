@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -221,7 +222,7 @@ public class GmailService {
         for (Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
             Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
-            String title = null, sender = null, from = null;
+            String title = null, from = null;
             LocalDateTime date = null;
 
             // 헤더에서 제목, 발신자, 수신 날짜 확인
@@ -246,36 +247,25 @@ public class GmailService {
                 }
             }
 
-            String id = detailMessage.getId();
-            String content = detailMessage.getSnippet();
             List<String> labelIds = detailMessage.getLabelIds();
-            boolean isFileExist = false;
-
-            List<MessagePart> messageParts = detailMessage.getPayload().getParts();
-
-            if(messageParts != null){
-                for(MessagePart messagePart : messageParts){
-                    if(messagePart.getFilename().isEmpty()){
-                        continue;
-                    }
-                    isFileExist = true;
-                }
-            }
+            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
 
             receivedEmailDTOs.add(ReceivedEmailResponseDTO.builder()
-                    .id(id)
+                    .id(detailMessage.getId())
                     .title(title)
-                    .content(content)
+                    .content(detailMessage.getSnippet())
                     .sender(from)
                     .receiveAt(date)
                     .isStarred(labelIds.contains("STARRED"))
-                    .isFileExist(isFileExist)
+                    .fileNameList(fileNameList)
                     .build()
             );
         }
 
         return receivedEmailDTOs;
     }
+
+
 
     public List<SentEmailResponseDTO> getSentGmail(Authentication authentication) throws IOException {
         String username = authentication.getName();
@@ -309,7 +299,7 @@ public class GmailService {
         for(Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
             Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
-            String title = null, receiver = null, to = null;
+            String title = null, to = null;
             LocalDateTime date = null;
 
             // 헤더에서 제목, 수신자, 발신 날짜 확인
@@ -333,33 +323,40 @@ public class GmailService {
                 }
             }
 
-            String id = detailMessage.getId();
-            String content = detailMessage.getSnippet();
             List<String> labelIds = detailMessage.getLabelIds();
-            boolean isFileExist = false;
-
-            List<MessagePart> messageParts = detailMessage.getPayload().getParts();
-
-            if(messageParts != null){
-                for(MessagePart messagePart : messageParts){
-                    if(messagePart.getFilename().isEmpty()){
-                        continue;
-                    }
-                    isFileExist = true;
-                }
-            }
+            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
 
             sentEmailDTOs.add(SentEmailResponseDTO.builder()
                     .id(detailMessage.getId())
                     .title(title)
-                    .content(content)
+                    .content(detailMessage.getSnippet())
                     .receiver(to)
                     .sendAt(date)
                     .isStarred(labelIds.contains("STARRED"))
-                    .isFileExist(isFileExist)
+                    .fileNameList(fileNameList)
                     .build()
             );
         }
         return sentEmailDTOs;
+    }
+
+    // Message에서 fileName과 attachmentId로 구성된 HashMap 리스트를 추출해서 반환하는 메서드
+    private static List<HashMap<String, String>> getFileNameList(Message detailMessage) {
+        List<MessagePart> messageParts = detailMessage.getPayload().getParts();
+        List<HashMap<String, String>> fileNameList = new ArrayList<>();
+
+        if(messageParts != null){
+            for(MessagePart messagePart : messageParts){
+                String fileName = messagePart.getFilename();
+                if(fileName.isEmpty()){
+                    continue;
+                }
+                HashMap<String, String> fileInfo = new HashMap<>();
+                fileInfo.put("fileName", fileName);
+                fileInfo.put("attachmentId", messagePart.getBody().getAttachmentId());
+                fileNameList.add(fileInfo);
+            }
+        }
+        return fileNameList;
     }
 }
