@@ -44,15 +44,15 @@ public class EmailController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/mails/schedule")
-    public ResponseEntity<List<ScheduledEmailResponseDTO>> getScheduledEmails(Authentication authentication){
-        List<ScheduledEmailResponseDTO> responseDTO = emailService.getScheduledEmails(authentication);
-        return ResponseEntity.ok(responseDTO);
-    }
+//    @GetMapping("/mails/schedule")
+//    public ResponseEntity<List<ScheduledEmailResponseDTO>> getScheduledEmails(Authentication authentication){
+//        List<ScheduledEmailResponseDTO> responseDTO = emailService.getScheduledEmails(authentication);
+//        return ResponseEntity.ok(responseDTO);
+//    }
 
     @GetMapping("/mails/draft")
-    public ResponseEntity<List<DraftEmailResponseDTO>> getDraftEmails(Authentication authentication){
-        List<DraftEmailResponseDTO> responseDTO = emailService.getDraftEmails(authentication);
+    public ResponseEntity<List<DraftEmailResponseDTO>> getDraftEmails(Authentication authentication) throws IOException {
+        List<DraftEmailResponseDTO> responseDTO = gmailService.getDraftGmail(authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
