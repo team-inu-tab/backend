@@ -14,7 +14,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -64,12 +63,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             userRepository.save(user);
 
-            // 지메일 메세지 10개 불러오기
-            try {
-                gmailService.loadGmail(userRequest.getAccessToken(), user);
-            } catch (IOException e) {
-                System.out.println("loadGmail Runtime Exception");
-            }
+//            // 지메일 메세지 10개 불러오기
+//            try {
+//                gmailService.loadGmail(userRequest.getAccessToken(), user);
+//            } catch (IOException e) {
+//                System.out.println("loadGmail Runtime Exception");
+//            }
 
             //UserDTO에 데이터 저장 후 CustomOAuth2User에 전달하여 결과적으로 OAuth2User를 리턴
             OAuth2UserDTO userDTO = OAuth2UserDTO.builder()

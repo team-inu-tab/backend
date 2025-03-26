@@ -14,6 +14,9 @@ public class UserInfoDTO {
     @NoArgsConstructor
     // 학생 정보를 입력받을 때 쓸 DTO => UserInfoDTO.Student
     public static class Student{
+        @NotBlank(message = "학교를 입력해주세요.")
+        private String schoolName;
+
         @NotBlank(message = "학과를 입력해주세요.")
         private String studentDepartment;
 

@@ -4,25 +4,27 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 
 @Getter
 public class SentEmailResponseDTO {
-    private Long id;
+    private String id;
     private String title;
     private String content;
     private String receiver;
     private LocalDateTime sendAt;
     private Boolean isImportant;
-    private Boolean isFileExist;
+    private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public SentEmailResponseDTO(Long id, String title, String content, String receiver, LocalDateTime sendAt, Boolean isImportant, Boolean isFileExist) {
+    public SentEmailResponseDTO(String id, String title, String content, String receiver, LocalDateTime sendAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.receiver = receiver;
         this.sendAt = sendAt;
         this.isImportant = isImportant;
-        this.isFileExist = isFileExist;
+        this.fileNameList = fileNameList;
     }
 }
