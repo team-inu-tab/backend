@@ -14,6 +14,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
+import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
@@ -598,6 +599,32 @@ public class GmailService {
         }
 
         return draftEmailDTOs;
+    }
+
+    public String getFileResource(String mailId, String attachmentId, Authentication authentication) throws IOException {
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if (op_user.isEmpty()) {
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+
+        // OAuth2 AccessToken을 GoogleCredentials로 변환
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
+
+        //Gmail api 요청 객체 생성
+        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
+                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+                .setApplicationName("maeil-mail")
+                .build();
+
+        MessagePartBody file = gmail.users().messages().attachments()
+                .get(user.getEmail(), mailId, attachmentId).execute();
+
+        return file.getData();
     }
 
     // Message에서 fileName과 attachmentId로 구성된 HashMap 리스트를 추출해서 반환하는 메서드

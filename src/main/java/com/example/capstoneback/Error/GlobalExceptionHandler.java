@@ -1,5 +1,6 @@
 package com.example.capstoneback.Error;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -90,5 +91,13 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
     public ResponseEntity<ErrorResponse> handleEmailSendFailedException(GmailSendFailedException e) {
         ErrorResponse errorResponse = new ErrorResponse(e.getErrorCode());
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(e.getErrorCode().getStatus()));
+    }
+
+    // 사용자가 타인의 gmail 데이터에 접근하려고 할 때 발생하는 에러 처리
+    @ExceptionHandler(GoogleJsonResponseException.class)
+    public ResponseEntity<Map<String, Object>> handleGoogleJsonResponseException(GoogleJsonResponseException e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
