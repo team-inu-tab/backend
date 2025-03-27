@@ -1,7 +1,6 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.DTO.*;
-import com.example.capstoneback.Entity.Email;
 import com.example.capstoneback.Entity.User;
 import com.example.capstoneback.Error.ErrorCode;
 import com.example.capstoneback.Error.UserDoesntExistException;
@@ -21,9 +20,7 @@ import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -34,8 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -48,147 +43,147 @@ public class GmailService {
     final static HttpTransport httpTransport = new NetHttpTransport();
     final static JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
 
-    @Transactional
-    public void loadGmail(OAuth2AccessToken oAuth2AccessToken, User user) throws IOException {
+//    @Transactional
+//    public void loadGmail(OAuth2AccessToken oAuth2AccessToken, User user) throws IOException {
+//
+//        // OAuth2 AccessToken을 GoogleCredentials로 변환
+//        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(oAuth2AccessToken.getTokenValue(), null));
+//
+//        //Gmail api 요청 객체 생성
+//        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
+//                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+//                .setApplicationName("maeil-mail")
+//                .build();
+//
+//        saveInboxGmail(gmail, user); //받은 gmail 5개 db에 저장
+//        saveSentGmail(gmail, user); // 보낸 gamil 5개 db에 저장
+//    }
 
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(oAuth2AccessToken.getTokenValue(), null));
+//    private void saveInboxGmail(Gmail gmail, User user) throws IOException {
+//        // 받은 이메일 리스트 요청
+//        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
+//                .setMaxResults(5L)
+//                .setLabelIds(List.of("INBOX"))
+//                .execute()
+//                .getMessages();
+//
+//        // 받은 이메일 세부사항 확인 및 db에 저장
+//        Pattern pattern = Pattern.compile("<(.*?)>");
+//        Matcher matcher;
+//        for(Message messageInfo : inboxMessages) {
+//            // 단일 이메일 조회
+//            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
+//            String title = null, sender = null;
+//            LocalDateTime date = null;
+//
+//            // 헤더에서 제목, 발신자, 수신 날짜 확인
+//            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
+//                switch (header.getName()){
+//                    case "Subject":
+//                        title = header.getValue(); break;
+//                    case "From":
+//                        String from = header.getValue();
+//                        matcher = pattern.matcher(from);
+//                        sender = matcher.find() ? matcher.group(1) : from;
+//                        break;
+//                    case "Date":
+//                        // Date를 LocalDateTime 타입에 맞게 변환
+//                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+//                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+//                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
+//                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+//                        date = koreaTime.toLocalDateTime();
+//                        break;
+//                    default:
+//                        break;
+//                }
+//            }
+//
+//            // 임시 메일 or 별표 메일인지 확인
+//            List<String> labelIds = detailMessage.getLabelIds();
+//            boolean isDraft = labelIds.contains("DRAFT");
+//            boolean isImportant = labelIds.contains("STARRED");
+//
+//            // 이메일 엔티티 생성 및 저장
+//            Email email = Email.builder()
+//                    .title(title)
+//                    .content(detailMessage.getSnippet())
+//                    .sender(sender)
+//                    .receiver(user.getEmail())
+//                    .isImportant(isImportant)
+//                    .sendAt(null)
+//                    .receiveAt(date)
+//                    .isDraft(isDraft)
+//                    .scheduledAt(null)
+//                    .user(user)
+//                    .build();
+//
+//            emailRepository.save(email);
+//        }
+//    }
 
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        saveInboxGmail(gmail, user); //받은 gmail 5개 db에 저장
-        saveSentGmail(gmail, user); // 보낸 gamil 5개 db에 저장
-    }
-
-    private void saveInboxGmail(Gmail gmail, User user) throws IOException {
-        // 받은 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
-                .setMaxResults(5L)
-                .setLabelIds(List.of("INBOX"))
-                .execute()
-                .getMessages();
-
-        // 받은 이메일 세부사항 확인 및 db에 저장
-        Pattern pattern = Pattern.compile("<(.*?)>");
-        Matcher matcher;
-        for(Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
-            String title = null, sender = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 발신자, 수신 날짜 확인
-            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
-                switch (header.getName()){
-                    case "Subject":
-                        title = header.getValue(); break;
-                    case "From":
-                        String from = header.getValue();
-                        matcher = pattern.matcher(from);
-                        sender = matcher.find() ? matcher.group(1) : from;
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            // 임시 메일 or 별표 메일인지 확인
-            List<String> labelIds = detailMessage.getLabelIds();
-            boolean isDraft = labelIds.contains("DRAFT");
-            boolean isImportant = labelIds.contains("STARRED");
-
-            // 이메일 엔티티 생성 및 저장
-            Email email = Email.builder()
-                    .title(title)
-                    .content(detailMessage.getSnippet())
-                    .sender(sender)
-                    .receiver(user.getEmail())
-                    .isImportant(isImportant)
-                    .sendAt(null)
-                    .receiveAt(date)
-                    .isDraft(isDraft)
-                    .scheduledAt(null)
-                    .user(user)
-                    .build();
-
-            emailRepository.save(email);
-        }
-    }
-
-    private void saveSentGmail(Gmail gmail, User user) throws IOException {
-        // 보낸 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
-                .setMaxResults(5L)
-                .setLabelIds(List.of("SENT"))
-                .execute()
-                .getMessages();
-
-        // 보낸 이메일 세부사항 확인 및 db에 저장
-        Pattern pattern = Pattern.compile("<(.*?)>");
-        Matcher matcher;
-        for(Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
-            String title = null, receiver = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 수신자, 발신 날짜 확인
-            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
-                switch (header.getName()){
-                    case "Subject":
-                        title = header.getValue(); break;
-                    case "To":
-                        String to = header.getValue();
-                        matcher = pattern.matcher(to);
-                        receiver = matcher.find() ? matcher.group(1) : to;
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            // 임시 메일 or 별표 메일인지 확인
-            List<String> labelIds = detailMessage.getLabelIds();
-            boolean isDraft = labelIds.contains("DRAFT");
-            boolean isImportant = labelIds.contains("STARRED");
-
-            // 이메일 엔티티 생성 및 저장
-            Email email = Email.builder()
-                    .title(title)
-                    .content(detailMessage.getSnippet())
-                    .sender(user.getEmail())
-                    .receiver(receiver)
-                    .isImportant(isImportant)
-                    .sendAt(date)
-                    .receiveAt(null)
-                    .isDraft(isDraft)
-                    .scheduledAt(null)
-                    .user(user)
-                    .build();
-
-            emailRepository.save(email);
-        }
-    }
+//    private void saveSentGmail(Gmail gmail, User user) throws IOException {
+//        // 보낸 이메일 리스트 요청
+//        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
+//                .setMaxResults(5L)
+//                .setLabelIds(List.of("SENT"))
+//                .execute()
+//                .getMessages();
+//
+//        // 보낸 이메일 세부사항 확인 및 db에 저장
+//        Pattern pattern = Pattern.compile("<(.*?)>");
+//        Matcher matcher;
+//        for(Message messageInfo : inboxMessages) {
+//            // 단일 이메일 조회
+//            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
+//            String title = null, receiver = null;
+//            LocalDateTime date = null;
+//
+//            // 헤더에서 제목, 수신자, 발신 날짜 확인
+//            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
+//                switch (header.getName()){
+//                    case "Subject":
+//                        title = header.getValue(); break;
+//                    case "To":
+//                        String to = header.getValue();
+//                        matcher = pattern.matcher(to);
+//                        receiver = matcher.find() ? matcher.group(1) : to;
+//                        break;
+//                    case "Date":
+//                        // Date를 LocalDateTime 타입에 맞게 변환
+//                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+//                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
+//                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
+//                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+//                        date = koreaTime.toLocalDateTime();
+//                        break;
+//                    default:
+//                        break;
+//                }
+//            }
+//
+//            // 임시 메일 or 별표 메일인지 확인
+//            List<String> labelIds = detailMessage.getLabelIds();
+//            boolean isDraft = labelIds.contains("DRAFT");
+//            boolean isImportant = labelIds.contains("STARRED");
+//
+//            // 이메일 엔티티 생성 및 저장
+//            Email email = Email.builder()
+//                    .title(title)
+//                    .content(detailMessage.getSnippet())
+//                    .sender(user.getEmail())
+//                    .receiver(receiver)
+//                    .isImportant(isImportant)
+//                    .sendAt(date)
+//                    .receiveAt(null)
+//                    .isDraft(isDraft)
+//                    .scheduledAt(null)
+//                    .user(user)
+//                    .build();
+//
+//            emailRepository.save(email);
+//        }
+//    }
 
     public List<ReceivedEmailResponseDTO> getReceivedGmail(Authentication authentication) throws IOException {
         String username = authentication.getName();
@@ -200,6 +195,7 @@ public class GmailService {
         }
 
         User user = op_user.get();
+        String userEmail = user.getEmail();
 
         // OAuth2 AccessToken을 GoogleCredentials로 변환
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
@@ -211,7 +207,7 @@ public class GmailService {
                 .build();
 
         // 받은 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
+        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
                 .setMaxResults(10L)
                 .setLabelIds(List.of("INBOX"))
                 .execute()
@@ -221,7 +217,7 @@ public class GmailService {
 
         for (Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
             String title = null, from = null;
             LocalDateTime date = null;
 
@@ -275,6 +271,7 @@ public class GmailService {
         }
 
         User user = op_user.get();
+        String userEmail = user.getEmail();
 
         // OAuth2 AccessToken을 GoogleCredentials로 변환
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
@@ -286,7 +283,7 @@ public class GmailService {
                 .build();
 
         // 보낸 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
+        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
                 .setMaxResults(10L)
                 .setLabelIds(List.of("SENT"))
                 .execute()
@@ -296,7 +293,7 @@ public class GmailService {
 
         for(Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
             String title = null, to = null;
             LocalDateTime date = null;
 
@@ -348,6 +345,7 @@ public class GmailService {
         }
 
         User user = op_user.get();
+        String userEmail = user.getEmail();
 
         // OAuth2 AccessToken을 GoogleCredentials로 변환
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
@@ -359,7 +357,7 @@ public class GmailService {
                 .build();
 
         // 내게 보낸 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
+        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
                 .setMaxResults(10L)
                 .setLabelIds(List.of("SENT", "INBOX"))
                 .execute()
@@ -369,7 +367,7 @@ public class GmailService {
 
         for(Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
             String title = null;
             LocalDateTime date = null;
 
@@ -418,6 +416,7 @@ public class GmailService {
         }
 
         User user = op_user.get();
+        String userEmail = user.getEmail();
 
         // OAuth2 AccessToken을 GoogleCredentials로 변환
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
@@ -429,7 +428,7 @@ public class GmailService {
                 .build();
 
         // 중요 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
+        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
                 .setMaxResults(10L)
                 .setLabelIds(List.of("STARRED"))
                 .execute()
@@ -439,7 +438,7 @@ public class GmailService {
 
         for(Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
             String title = null, from= null, to = null;
             LocalDateTime date = null;
 
@@ -536,6 +535,7 @@ public class GmailService {
         }
 
         User user = op_user.get();
+        String userEmail = user.getEmail();
 
         // OAuth2 AccessToken을 GoogleCredentials로 변환
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
@@ -547,7 +547,7 @@ public class GmailService {
                 .build();
 
         // 임시 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list("me")
+        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
                 .setMaxResults(10L)
                 .setLabelIds(List.of("DRAFT"))
                 .execute()
@@ -557,7 +557,7 @@ public class GmailService {
 
         for(Message messageInfo : inboxMessages) {
             // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get("me", messageInfo.getId()).execute();
+            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
             String title = null, to = null;
             LocalDateTime date = null;
 
@@ -611,6 +611,7 @@ public class GmailService {
         }
 
         User user = op_user.get();
+        String userEmail = user.getEmail();
 
         // OAuth2 AccessToken을 GoogleCredentials로 변환
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
