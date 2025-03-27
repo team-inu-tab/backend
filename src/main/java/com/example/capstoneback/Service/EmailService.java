@@ -1,21 +1,10 @@
 package com.example.capstoneback.Service;
 
-import com.example.capstoneback.DTO.MailDetailsResponseDTO;
-import com.example.capstoneback.Entity.Email;
-import com.example.capstoneback.Entity.MultiFile;
-import com.example.capstoneback.Entity.User;
-import com.example.capstoneback.Error.EmailDoesntExistException;
-import com.example.capstoneback.Error.ErrorCode;
-import com.example.capstoneback.Error.UserDoesntExistException;
 import com.example.capstoneback.Repository.EmailRepository;
 import com.example.capstoneback.Repository.MultiFileRepository;
 import com.example.capstoneback.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -176,43 +165,43 @@ public class EmailService {
 //                .build()).toList();
 //    }
 
-    public MailDetailsResponseDTO getMailDetails(Long mailId ,Authentication authentication) throws IllegalAccessException {
-        String username = authentication.getName();
-
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if(op_user.isEmpty()){
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-
-        // 메일 가져오기
-        Email email = emailRepository.findById(mailId).orElseThrow(
-                () -> new EmailDoesntExistException(ErrorCode.EMAIL_DOESNT_EXIST)
-        );
-
-        // 메일 소유자와 요청자 동일한지 확인
-        if(email.getUser() != user){
-            throw new IllegalAccessException("email user doesnt match");
-        }
-
-        // 메일의 파일 조회 후 파일 이름 조회
-        List<MultiFile> multiFiles =  email.getMultiFiles();
-        List<String> fileName = multiFiles.stream().map(file ->
-                file.getFileName())
-                .toList();
-
-        // DTO 만들어서 리턴
-        return MailDetailsResponseDTO.builder()
-                .title(email.getTitle())
-                .content(email.getContent())
-                .sender(email.getSender())
-                .receiver(email.getReceiver())
-                .sendAt(email.getSendAt())
-                .receivedAt(email.getReceiveAt())
-                .isImportant(email.getIsImportant())
-                .fileName(fileName)
-                .build();
-    }
+//    public MailDetailsResponseDTO getMailDetails(Long mailId ,Authentication authentication) throws IllegalAccessException {
+//        String username = authentication.getName();
+//
+//        // 유저 확인
+//        Optional<User> op_user = userRepository.findByUsername(username);
+//        if(op_user.isEmpty()){
+//            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+//        }
+//
+//        User user = op_user.get();
+//
+//        // 메일 가져오기
+//        Email email = emailRepository.findById(mailId).orElseThrow(
+//                () -> new EmailDoesntExistException(ErrorCode.EMAIL_DOESNT_EXIST)
+//        );
+//
+//        // 메일 소유자와 요청자 동일한지 확인
+//        if(email.getUser() != user){
+//            throw new IllegalAccessException("email user doesnt match");
+//        }
+//
+//        // 메일의 파일 조회 후 파일 이름 조회
+//        List<MultiFile> multiFiles =  email.getMultiFiles();
+//        List<String> fileName = multiFiles.stream().map(file ->
+//                file.getFileName())
+//                .toList();
+//
+//        // DTO 만들어서 리턴
+//        return MailDetailsResponseDTO.builder()
+//                .title(email.getTitle())
+//                .content(email.getContent())
+//                .sender(email.getSender())
+//                .receiver(email.getReceiver())
+//                .sendAt(email.getSendAt())
+//                .receivedAt(email.getReceiveAt())
+//                .isImportant(email.getIsImportant())
+//                .fileName(fileName)
+//                .build();
+//    }
 }
