@@ -44,9 +44,40 @@
         <textarea id="body" placeholder="이메일 내용"></textarea>
         <button onclick="sendEmail()">메일 보내기</button>
     </div>
+    <div>
+        <h5>허깅페이스 API</h5>
+        <input id="huggingfaceText" type="text" placeholder="메일 텍스트">
+        <button onclick="getDataFromHuggingFace()">허깅페이스 데이터 조회</button>
+    </div>
     <br>
     <script>
         let accessToken = "";
+
+        async function getDataFromHuggingFace() {
+            const message = document.getElementById("huggingfaceText").value;
+            try {
+                const response = await fetch('https://likelionfesival.shop/ai/huggingface', {
+                    method: "post",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                        'Content-Type': "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: message
+                    })
+                })
+                if (response.ok) {
+                    alert('허깅페이스 데이터 수신 성송(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('허깅페이스 데이터 수신 실패');
+                }
+            } catch (error) {
+                alert("허깅페이스 데이터 수신 중 오류 발생")
+            }
+        }
 
         async function getDraftEmails() {
             try {
