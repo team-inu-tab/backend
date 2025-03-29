@@ -24,6 +24,10 @@
 <button onclick="getScheduledEmails()">get scheduled emails</button>
 <button onclick="getDraftEmails()">get draft emails</button>
 <button onclick="getEmailDetails()">get email details</button>
+<div>
+    <input id="searchUserEmail" placeholder="특정 사용자 이메일">
+    <button onclick="searchGmailsByUserEmail()">search gmails by userEmail</button>
+</div>
 <h3>스팸 메일 API</h3>
 <div>
     <input id="spamMessageId" type="text" placeholder="스팸 처리할 messageId">
@@ -60,6 +64,32 @@
 <br>
 <script>
     let accessToken = "";
+
+    async function searchGmailsByUserEmail() {
+        const userEmail = document.getElementById("searchUserEmail").value;
+        try {
+            const response = await fetch('http://localhost:8089/mails/search/userEmail', {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: accessToken,
+                },
+                body: JSON.stringify({
+                    'userEmail': userEmail,
+                })
+            })
+            if (response.ok) {
+                alert('특정 사용자와 주고 받은 메일 수신 성공(콘솔에 데이터 확인)');
+                const data = await response.json();
+                console.log(data);
+            } else {
+                alert('특정 사용자와 주고 받은 메일 수신 실패');
+            }
+        } catch (error) {
+            alert("특정 사용자와 주고 받은 메일 수신 중 오류 발생")
+        }
+    }
 
     async function getDataFromHuggingFace() {
         const message = document.getElementById("huggingfaceText").value;
