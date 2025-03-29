@@ -1,12 +1,17 @@
 package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.*;
+import com.example.capstoneback.Error.NotValidArgumentException;
 import com.example.capstoneback.Service.EmailService;
 import com.example.capstoneback.Service.GmailService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -60,4 +65,14 @@ public class EmailController {
 //        MailDetailsResponseDTO responseDTO = emailService.getMailDetails(mailId ,authentication);
 //        return ResponseEntity.ok(responseDTO);
 //    }
+
+    @PostMapping("/mails/search/userEmail")
+    public ResponseEntity<List<ImportantEmailResponseDTO>> searchGmailsByUserEmail(@Valid @RequestBody SearchGmailsByUserEmailRequestDTO requestDTO, Errors errors, Authentication authentication) throws IOException {
+        if(errors.hasErrors()) {
+            throw new NotValidArgumentException("not valid argument", errors);
+        }
+
+        List<ImportantEmailResponseDTO> responseDTO = gmailService.searchGmailsByUserEmail(requestDTO, authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
 }
