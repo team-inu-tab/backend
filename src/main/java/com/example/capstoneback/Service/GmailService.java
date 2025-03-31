@@ -202,25 +202,6 @@ public class GmailService {
         return getEmailsByLabel(auth, "SPAM", SpamEmailResponseDTO.class);
     }
 
-//    public List<ReceivedEmailResponseDTO> getSpamEmails(Authentication authentication) throws IOException {
-//        User user = getUserFromAuth(authentication);
-//        Gmail gmail = getGmailService(user);
-//
-//        List<Message> spamMessages = gmail.users().messages().list(user.getEmail())
-//                .setLabelIds(List.of("SPAM"))
-//                .setMaxResults(10L)
-//                .execute()
-//                .getMessages();
-//
-//        List<ReceivedEmailResponseDTO> responseList = new ArrayList<>();
-//
-//        for (Message msg : spamMessages) {
-//            Message detail = gmail.users().messages().get(user.getEmail(), msg.getId()).execute();
-//            responseList.add(toReceivedEmailDTO(detail));
-//        }
-//
-//        return responseList;
-//    }
     // 내게 쓴 메일함은 라벨이 SENT, INBOX가 동시에 붙어있어서 user entity 조회
     public List<SelfEmailResponseDTO> getSelfGmail(Authentication auth) throws IOException {
         User user = getUser(auth);

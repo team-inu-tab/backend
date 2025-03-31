@@ -75,44 +75,4 @@ public class SpamEmailService {
                 .setApplicationName("maeil-mail")
                 .build();
     }
-
-    // DTO 변환
-    private ReceivedEmailResponseDTO toReceivedEmailDTO(Message message) {
-        String title = null, from = null;
-        LocalDateTime date = null;
-
-        for (MessagePartHeader header : message.getPayload().getHeaders()) {
-            switch (header.getName()) {
-                case "Subject": title = header.getValue(); break;
-                case "From": from = header.getValue(); break;
-                case "Date":
-                    String dateStr = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                    ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
-                    date = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
-                    break;
-            }
-        }
-
-        List<HashMap<String, String>> attachments = new ArrayList<>();
-        if (message.getPayload().getParts() != null) {
-            for (MessagePart part : message.getPayload().getParts()) {
-                if (!part.getFilename().isEmpty()) {
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("fileName", part.getFilename());
-                    map.put("attachmentId", part.getBody().getAttachmentId());
-                    attachments.add(map);
-                }
-            }
-        }
-
-        return ReceivedEmailResponseDTO.builder()
-                .id(message.getId())
-                .title(title)
-                .content(message.getSnippet())
-                .sender(from)
-                .receiveAt(date)
-                .isImportant(message.getLabelIds().contains("STARRED"))
-                .fileNameList(attachments)
-                .build();
-    }
 }

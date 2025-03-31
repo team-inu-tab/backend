@@ -100,4 +100,31 @@ public class GmailMailSenderService {
             throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
         }
     }
+
+    // 임시보관함에 저장하기
+    public void saveEmailToDraft(Authentication authentication, String toEmail, String subject, String body) {
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+
+            Gmail service = gmailServiceBuilder.getGmailService(user);
+            MimeMessage emailContent = createEmail(user.getEmail(), toEmail, subject, body);
+
+            // MimeMessage → Message 변환
+            Message message = createMessageWithEmail(emailContent);
+
+            // draft에 저장
+            com.google.api.services.gmail.model.Draft draft = new com.google.api.services.gmail.model.Draft();
+            draft.setMessage(message);
+
+            draft = service.users().drafts().create("me", draft).execute();
+
+            System.out.println("Draft saved successfully. Draft ID: " + draft.getId());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
+        }
+    }
 }

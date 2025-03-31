@@ -45,6 +45,14 @@
         <button onclick="sendEmail()">메일 보내기</button>
     </div>
     <div>
+        <h5>임시 보관함에 저장하기</h5>
+        <input id="draftToEmail" type="email" placeholder="받는 사람 이메일">
+        <input id="draftSubject" type="text" placeholder="제목">
+        <textarea id="draftBody" placeholder="이메일 내용"></textarea>
+        <button onclick="saveDraftEmail()">임시 보관함 저장</button>
+    </div>
+    
+    <div>
         <h5>허깅페이스 API</h5>
         <input id="huggingfaceText" type="text" placeholder="메일 텍스트">
         <button onclick="getDataFromHuggingFace()">허깅페이스 데이터 조회</button>
@@ -376,6 +384,37 @@
             alert("메일 전송 중 오류 발생");
         }
     }
+
+    async function saveDraftEmail() {
+    const toEmail = document.getElementById("draftToEmail").value;
+    const subject = document.getElementById("draftSubject").value;
+    const body = document.getElementById("draftBody").value;
+
+    try {
+        const response = await fetch('http://localhost:8089/mails/draft', {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: accessToken,
+            },
+            body: JSON.stringify({
+                toEmail: toEmail,
+                subject: subject,
+                body: body
+            })
+        });
+
+        if (response.ok) {
+            alert('메일을 임시 보관함에 저장했습니다.');
+        } else {
+            alert('메일 임시 보관 실패');
+        }
+        } catch (error) {
+            alert("메일 임시 보관 중 오류 발생");
+        }
+    }
+
     </script>
 </body>
 

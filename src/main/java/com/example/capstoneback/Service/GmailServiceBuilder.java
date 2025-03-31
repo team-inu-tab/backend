@@ -23,7 +23,6 @@ public class GmailServiceBuilder {
         System.out.println("accessToken info" + user.getAccessToken());
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
 
-
         return new Gmail.Builder(httpTransport, jsonFactory, null)
                 .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
                 .setApplicationName("My Gmail App")
