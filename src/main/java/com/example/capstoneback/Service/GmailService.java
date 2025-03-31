@@ -11,10 +11,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.MessagePart;
-import com.google.api.services.gmail.model.MessagePartBody;
-import com.google.api.services.gmail.model.MessagePartHeader;
+import com.google.api.services.gmail.model.*;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -190,10 +187,6 @@ public class GmailService {
         return getEmailsByLabel(auth, "SENT", SentEmailResponseDTO.class);
     }
 
-    public List<DraftEmailResponseDTO> getDraftGmail(Authentication auth) throws IOException {
-        return getEmailsByLabel(auth, "DRAFT", DraftEmailResponseDTO.class);
-    }
-
     public List<ImportantEmailResponseDTO> getImportantGmail(Authentication auth) throws IOException {
         return getEmailsByLabel(auth, "STARRED", ImportantEmailResponseDTO.class);
     }
@@ -201,6 +194,60 @@ public class GmailService {
     public List<SpamEmailResponseDTO> getSpamGmail(Authentication auth) throws IOException {
         return getEmailsByLabel(auth, "SPAM", SpamEmailResponseDTO.class);
     }
+
+    public List<DraftEmailResponseDTO> getDraftGmail(Authentication auth) throws IOException {
+        User user = getUser(auth);
+        Gmail gmail = getGmailService(user);
+
+        ListDraftsResponse draftsResponse = gmail.users().drafts()
+                .list(user.getEmail())
+                .setMaxResults(10L)
+                .execute();
+
+        List<Draft> drafts = draftsResponse.getDrafts();
+        List<DraftEmailResponseDTO> draftDTOs = new ArrayList<>();
+
+        if (drafts != null) {
+            for (Draft draft : drafts) {
+                String draftId = draft.getId();
+
+                Message message = gmail.users().messages()
+                        .get(user.getEmail(), draft.getMessage().getId())
+                        .execute();
+
+                String subject = null, receiver = null;
+                LocalDateTime createdAt = null;
+
+                for (MessagePartHeader header : message.getPayload().getHeaders()) {
+                    if ("Subject".equals(header.getName())) subject = header.getValue();
+                    if ("To".equals(header.getName())) receiver = header.getValue();
+                    if ("Date".equals(header.getName())) {
+                        String dateStr = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+                        ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+                        createdAt = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+                    }
+                }
+
+                List<HashMap<String, String>> attachments = getAttachments(message);
+
+                DraftEmailResponseDTO dto = DraftEmailResponseDTO.builder()
+                        .draftId(draftId)
+                        .id(message.getId())
+                        .title(subject)
+                        .content(message.getSnippet())
+                        .receiver(receiver)
+                        .createdAt(createdAt)
+                        .isImportant(message.getLabelIds().contains("STARRED"))
+                        .fileNameList(attachments)
+                        .build();
+
+                draftDTOs.add(dto);
+            }
+        }
+
+        return draftDTOs;
+    }
+
 
     // 내게 쓴 메일함은 라벨이 SENT, INBOX가 동시에 붙어있어서 user entity 조회
     public List<SelfEmailResponseDTO> getSelfGmail(Authentication auth) throws IOException {

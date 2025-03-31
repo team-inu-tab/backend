@@ -38,19 +38,20 @@
     </div>
     <br />
     <div>
-        <h5>메일 보내기</h5>
-        <input id="toEmail" type="email" placeholder="받는 사람 이메일">
-        <input id="subject" type="text" placeholder="제목">
-        <textarea id="body" placeholder="이메일 내용"></textarea>
-        <button onclick="sendEmail()">메일 보내기</button>
-    </div>
-    <div>
-        <h5>임시 보관함에 저장하기</h5>
+        <h3>임시메일</h3>
+        <input id="draftId" type="text" placeholder="임시메일(Draft) ID (수정/삭제 시 필요)">
+        <br>
         <input id="draftToEmail" type="email" placeholder="받는 사람 이메일">
+        <br>
         <input id="draftSubject" type="text" placeholder="제목">
+        <br>
         <textarea id="draftBody" placeholder="이메일 내용"></textarea>
-        <button onclick="saveDraftEmail()">임시 보관함 저장</button>
+        <br>
+        <button onclick="saveDraftEmail()">임시메일 저장</button>
+        <button onclick="updateDraftEmail()" style="color:orange;">임시메일 수정</button>
+        <button onclick="deleteDraftEmail()" style="color:red;">임시메일 삭제</button>
     </div>
+    
     
     <div>
         <h5>허깅페이스 API</h5>
@@ -385,12 +386,12 @@
         }
     }
 
+    // 임시메일 저장
     async function saveDraftEmail() {
-    const toEmail = document.getElementById("draftToEmail").value;
-    const subject = document.getElementById("draftSubject").value;
-    const body = document.getElementById("draftBody").value;
+        const toEmail = document.getElementById("draftToEmail").value;
+        const subject = document.getElementById("draftSubject").value;
+        const body = document.getElementById("draftBody").value;
 
-    try {
         const response = await fetch('http://localhost:8089/mails/draft', {
             method: "POST",
             credentials: "include",
@@ -398,22 +399,82 @@
                 "Content-Type": "application/json",
                 Authorization: accessToken,
             },
-            body: JSON.stringify({
-                toEmail: toEmail,
-                subject: subject,
-                body: body
-            })
+            body: JSON.stringify({ toEmail, subject, body })
         });
 
         if (response.ok) {
-            alert('메일을 임시 보관함에 저장했습니다.');
+            const data = await response.json();
+            alert('임시메일 저장 성공!\nDraft ID: ' + data.id);
+            document.getElementById("draftId").value = data.id; 
         } else {
-            alert('메일 임시 보관 실패');
+            alert('임시메일 저장 실패');
         }
+        
+    }
+
+    // 임시메일 수정
+    async function updateDraftEmail() {
+        const draftId = document.getElementById("draftId").value;
+        const toEmail = document.getElementById("draftToEmail").value;
+        const subject = document.getElementById("draftSubject").value;
+        const body = document.getElementById("draftBody").value;
+
+        if (!draftId || !toEmail || !subject || !body) {
+            alert('임시메일 ID, 받는 사람 이메일, 제목, 본문을 모두 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8089/mails/draft/${draftId}`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: accessToken,
+                },
+                body: JSON.stringify({ toEmail, subject, body })
+            });
+
+            if (response.ok) {
+                alert('임시메일 수정 성공');
+            } else {
+                alert('임시메일 수정 실패');
+            }
         } catch (error) {
-            alert("메일 임시 보관 중 오류 발생");
+            alert("임시메일 수정 중 오류 발생");
         }
     }
+
+    // 임시메일 삭제
+    async function deleteDraftEmail() {
+        const draftId = document.getElementById("draftId").value;
+
+        if (!draftId) {
+            alert('삭제할 임시메일 ID를 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8089/mails/draft/${draftId}`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,
+                }
+            });
+
+            if (response.ok) {
+                alert('임시메일 삭제 성공');
+                document.getElementById("draftId").value = ""; 
+            } else {
+                alert('임시메일 삭제 실패');
+            }
+        } catch (error) {
+            alert("임시메일 삭제 중 오류 발생");
+        }
+    }
+
+
 
     </script>
 </body>

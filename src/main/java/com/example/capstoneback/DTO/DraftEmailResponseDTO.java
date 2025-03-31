@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 public class DraftEmailResponseDTO {
     private String id;
+    private String draftId;
     private String title;
     private String content;
     private String receiver;
@@ -18,8 +19,9 @@ public class DraftEmailResponseDTO {
     private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public DraftEmailResponseDTO(String id, String title, String content, String receiver, LocalDateTime createdAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
+    public DraftEmailResponseDTO(String id, String draftId, String title, String content, String receiver, LocalDateTime createdAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
         this.id = id;
+        this.draftId = draftId;
         this.title = title;
         this.content = content;
         this.receiver = receiver;
