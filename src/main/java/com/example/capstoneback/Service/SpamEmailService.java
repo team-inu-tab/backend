@@ -60,25 +60,7 @@ public class SpamEmailService {
     }
 
     // 스팸 목록 조회
-    public List<ReceivedEmailResponseDTO> getSpamEmails(Authentication authentication) throws IOException {
-        User user = getUserFromAuth(authentication);
-        Gmail gmail = getGmailService(user);
 
-        List<Message> spamMessages = gmail.users().messages().list(user.getEmail())
-                .setLabelIds(List.of("SPAM"))
-                .setMaxResults(10L)
-                .execute()
-                .getMessages();
-
-        List<ReceivedEmailResponseDTO> responseList = new ArrayList<>();
-
-        for (Message msg : spamMessages) {
-            Message detail = gmail.users().messages().get(user.getEmail(), msg.getId()).execute();
-            responseList.add(toReceivedEmailDTO(detail));
-        }
-
-        return responseList;
-    }
 
     // 유저 조회
     private User getUserFromAuth(Authentication authentication) {
