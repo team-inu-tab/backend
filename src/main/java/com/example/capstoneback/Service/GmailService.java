@@ -389,8 +389,78 @@ public class GmailService {
                     .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
-
+        
         throw new IllegalArgumentException("Unsupported DTO Type");
+    }
+    
+    // 메일 임시 삭제
+    public List<String> deleteGmailTemporary(DeleteGmailTemporaryRequestDTO requestDTO, Authentication authentication) throws IOException {
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if (op_user.isEmpty()) {
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+        String userEmail = user.getEmail();
+
+        // OAuth2 AccessToken을 GoogleCredentials로 변환
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
+
+        //Gmail api 요청 객체 생성
+        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
+                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+                .setApplicationName("maeil-mail")
+                .build();
+
+        List<String> selectedMailIds = requestDTO.getSelectedMailIds();
+        List<String> deletedMailIdList = new ArrayList<>();
+
+        for (String mailId : selectedMailIds) {
+            deletedMailIdList.add(gmail.users().messages().trash(userEmail, mailId).execute().getId());
+        }
+
+        return deletedMailIdList;
+    }
+
+    // 메일 영구 삭제
+    public List<String> deleteGmailPermanent(DeleteGmailPermanentRequestDTO requestDTO, Authentication authentication) {
+        String username = authentication.getName();
+
+        // 유저 확인
+        Optional<User> op_user = userRepository.findByUsername(username);
+        if (op_user.isEmpty()) {
+            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+        }
+
+        User user = op_user.get();
+        String userEmail = user.getEmail();
+
+        // OAuth2 AccessToken을 GoogleCredentials로 변환
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
+
+        //Gmail api 요청 객체 생성
+        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
+                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+                .setApplicationName("maeil-mail")
+                .build();
+
+        List<String> selectedMailIds = requestDTO.getSelectedMailIds();
+        List<String> deletedMailIdList = new ArrayList<>();
+
+        for (String mailId : selectedMailIds) {
+            try{
+                gmail.users().messages().delete(userEmail, mailId).execute();
+                deletedMailIdList.add(mailId);
+            }catch (IOException e){
+                e.printStackTrace();
+                System.out.println(e.getMessage());
+            }
+        }
+
+        return deletedMailIdList;
     }
 
     // 첨부파일 추출
