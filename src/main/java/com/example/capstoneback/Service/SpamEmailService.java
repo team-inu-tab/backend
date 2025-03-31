@@ -60,25 +60,7 @@ public class SpamEmailService {
     }
 
     // 스팸 목록 조회
-    public List<ReceivedEmailResponseDTO> getSpamEmails(Authentication authentication) throws IOException {
-        User user = getUserFromAuth(authentication);
-        Gmail gmail = getGmailService(user);
 
-        List<Message> spamMessages = gmail.users().messages().list(user.getEmail())
-                .setLabelIds(List.of("SPAM"))
-                .setMaxResults(10L)
-                .execute()
-                .getMessages();
-
-        List<ReceivedEmailResponseDTO> responseList = new ArrayList<>();
-
-        for (Message msg : spamMessages) {
-            Message detail = gmail.users().messages().get(user.getEmail(), msg.getId()).execute();
-            responseList.add(toReceivedEmailDTO(detail));
-        }
-
-        return responseList;
-    }
 
     // 유저 조회
     private User getUserFromAuth(Authentication authentication) {
@@ -91,46 +73,6 @@ public class SpamEmailService {
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
         return new Gmail.Builder(httpTransport, jsonFactory, new HttpCredentialsAdapter(credentials))
                 .setApplicationName("maeil-mail")
-                .build();
-    }
-
-    // DTO 변환
-    private ReceivedEmailResponseDTO toReceivedEmailDTO(Message message) {
-        String title = null, from = null;
-        LocalDateTime date = null;
-
-        for (MessagePartHeader header : message.getPayload().getHeaders()) {
-            switch (header.getName()) {
-                case "Subject": title = header.getValue(); break;
-                case "From": from = header.getValue(); break;
-                case "Date":
-                    String dateStr = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                    ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
-                    date = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
-                    break;
-            }
-        }
-
-        List<HashMap<String, String>> attachments = new ArrayList<>();
-        if (message.getPayload().getParts() != null) {
-            for (MessagePart part : message.getPayload().getParts()) {
-                if (!part.getFilename().isEmpty()) {
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("fileName", part.getFilename());
-                    map.put("attachmentId", part.getBody().getAttachmentId());
-                    attachments.add(map);
-                }
-            }
-        }
-
-        return ReceivedEmailResponseDTO.builder()
-                .id(message.getId())
-                .title(title)
-                .content(message.getSnippet())
-                .sender(from)
-                .receiveAt(date)
-                .isImportant(message.getLabelIds().contains("STARRED"))
-                .fileNameList(attachments)
                 .build();
     }
 }

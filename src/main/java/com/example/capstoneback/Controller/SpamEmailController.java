@@ -44,16 +44,4 @@ public class SpamEmailController {
                     .body("스팸메일 해제 실패: " + e.getMessage());
         }
     }
-
-    // 스팸 메일함 목록 조회
-    @GetMapping
-    public ResponseEntity<List<ReceivedEmailResponseDTO>> getSpamEmails(Authentication authentication) {
-        try {
-            List<ReceivedEmailResponseDTO> emails = spamEmailService.getSpamEmails(authentication);
-            return ResponseEntity.ok(emails);
-        } catch (IOException e) {
-            System.out.println(e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
 }
