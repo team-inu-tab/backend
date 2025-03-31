@@ -5,6 +5,7 @@ import com.example.capstoneback.Error.ErrorCode;
 import com.example.capstoneback.Error.GmailSendFailedException;
 import com.example.capstoneback.Repository.UserRepository;
 import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
@@ -100,4 +101,77 @@ public class GmailMailSenderService {
             throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
         }
     }
+
+    // 임시메일 저장
+    public void saveEmailToDraft(Authentication authentication, String toEmail, String subject, String body) {
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+
+            Gmail service = gmailServiceBuilder.getGmailService(user);
+            MimeMessage emailContent = createEmail(user.getEmail(), toEmail, subject, body);
+
+            // MimeMessage → Message 변환
+            Message message = createMessageWithEmail(emailContent);
+
+            // draft에 저장
+            com.google.api.services.gmail.model.Draft draft = new com.google.api.services.gmail.model.Draft();
+            draft.setMessage(message);
+
+            draft = service.users().drafts().create("me", draft).execute();
+
+            System.out.println("Draft saved successfully. Draft ID: " + draft.getId());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
+        }
+    }
+
+    // 임시메일 수정
+    public void updateDraftEmail(Authentication authentication, String draftId, String toEmail, String subject, String body) {
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+
+            Gmail service = gmailServiceBuilder.getGmailService(user);
+
+            MimeMessage emailContent = createEmail(user.getEmail(), toEmail, subject, body);
+            Message message = createMessageWithEmail(emailContent);
+
+            Draft draft = new Draft();
+            draft.setMessage(message);
+            draft.setId(draftId);
+
+            service.users().drafts().update("me", draftId, draft).execute();
+
+            System.out.println("Draft 업데이트 성공 (Draft ID: " + draftId + ")");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
+        }
+    }
+
+    // 임시메일 삭제
+    public void deleteDraftEmail(Authentication authentication, String draftId) {
+        try {
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+
+            Gmail service = gmailServiceBuilder.getGmailService(user);
+
+            service.users().drafts().delete("me", draftId).execute();
+
+            System.out.println("Draft 삭제 성공 (Draft ID: " + draftId + ")");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
+        }
+    }
+
 }

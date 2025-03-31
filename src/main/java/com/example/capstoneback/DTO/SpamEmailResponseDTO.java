@@ -8,24 +8,22 @@ import java.util.HashMap;
 import java.util.List;
 
 @Getter
-public class DraftEmailResponseDTO {
+public class SpamEmailResponseDTO {
     private String id;
-    private String draftId;
     private String title;
     private String content;
-    private String receiver;
-    private LocalDateTime createdAt;
+    private String sender;
+    private LocalDateTime receiveAt;
     private Boolean isImportant;
     private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public DraftEmailResponseDTO(String id, String draftId, String title, String content, String receiver, LocalDateTime createdAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
+    public SpamEmailResponseDTO(String id, String title, String content, String sender, LocalDateTime receiveAt, Boolean isImportant, List<HashMap<String, String>> fileNameList) {
         this.id = id;
-        this.draftId = draftId;
         this.title = title;
         this.content = content;
-        this.receiver = receiver;
-        this.createdAt = createdAt;
+        this.sender = sender;
+        this.receiveAt = receiveAt;
         this.isImportant = isImportant;
         this.fileNameList = fileNameList;
     }

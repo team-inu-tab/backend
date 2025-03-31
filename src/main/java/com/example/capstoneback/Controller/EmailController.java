@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EmailController {
 
-    private final EmailService emailService;
+//    private final EmailService emailService;
     private final GmailService gmailService;
 
     @GetMapping("/mails/receive")
@@ -61,6 +61,12 @@ public class EmailController {
 //        MailDetailsResponseDTO responseDTO = emailService.getMailDetails(mailId ,authentication);
 //        return ResponseEntity.ok(responseDTO);
 //    }
+
+    @GetMapping("/mails/spam")
+    public ResponseEntity<List<SpamEmailResponseDTO>> getSpamEmails(Authentication authentication) throws IOException {
+        List<SpamEmailResponseDTO> responseDTO = gmailService.getSpamGmail(authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
 
     @PostMapping("/mails/search/userEmail")
     public ResponseEntity<List<ImportantEmailResponseDTO>> searchGmailsByUserEmail(@RequestBody SearchGmailsByUserEmailRequestDTO requestDTO, Authentication authentication) throws IOException {

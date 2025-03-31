@@ -11,10 +11,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.MessagePart;
-import com.google.api.services.gmail.model.MessagePartBody;
-import com.google.api.services.gmail.model.MessagePartHeader;
+import com.google.api.services.gmail.model.*;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -27,10 +24,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -185,570 +179,221 @@ public class GmailService {
 //        }
 //    }
 
-    public List<ReceivedEmailResponseDTO> getReceivedGmail(Authentication authentication) throws IOException {
-        String username = authentication.getName();
-
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-        String userEmail = user.getEmail();
-
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
-
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        // 받은 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
-                .setMaxResults(10L)
-                .setLabelIds(List.of("INBOX"))
-                .execute()
-                .getMessages();
-
-        List<ReceivedEmailResponseDTO> receivedEmailDTOs = new ArrayList<>();
-
-        for (Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
-            String title = null, from = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 발신자, 수신 날짜 확인
-            for (MessagePartHeader header : detailMessage.getPayload().getHeaders()) {
-                switch (header.getName()) {
-                    case "Subject":
-                        title = header.getValue();
-                        break;
-                    case "From":
-                        from = header.getValue();
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            List<String> labelIds = detailMessage.getLabelIds();
-            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
-
-            receivedEmailDTOs.add(ReceivedEmailResponseDTO.builder()
-                    .id(detailMessage.getId())
-                    .title(title)
-                    .content(detailMessage.getSnippet())
-                    .sender(from)
-                    .receiveAt(date)
-                    .isImportant(labelIds.contains("STARRED"))
-                    .fileNameList(fileNameList)
-                    .build()
-            );
-        }
-
-        return receivedEmailDTOs;
+    public List<ReceivedEmailResponseDTO> getReceivedGmail(Authentication auth) throws IOException {
+        return getEmailsByLabel(auth, "INBOX", ReceivedEmailResponseDTO.class);
     }
 
-    public List<SentEmailResponseDTO> getSentGmail(Authentication authentication) throws IOException {
-        String username = authentication.getName();
-
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-        String userEmail = user.getEmail();
-
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
-
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        // 보낸 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
-                .setMaxResults(10L)
-                .setLabelIds(List.of("SENT"))
-                .execute()
-                .getMessages();
-
-        List<SentEmailResponseDTO> sentEmailDTOs = new ArrayList<>();
-
-        for(Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
-            String title = null, to = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 수신자, 발신 날짜 확인
-            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
-                switch (header.getName()){
-                    case "Subject":
-                        title = header.getValue(); break;
-                    case "To":
-                        to = header.getValue();
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            List<String> labelIds = detailMessage.getLabelIds();
-            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
-
-            sentEmailDTOs.add(SentEmailResponseDTO.builder()
-                    .id(detailMessage.getId())
-                    .title(title)
-                    .content(detailMessage.getSnippet())
-                    .receiver(to)
-                    .sendAt(date)
-                    .isImportant(labelIds.contains("STARRED"))
-                    .fileNameList(fileNameList)
-                    .build()
-            );
-        }
-        return sentEmailDTOs;
+    public List<SentEmailResponseDTO> getSentGmail(Authentication auth) throws IOException {
+        return getEmailsByLabel(auth, "SENT", SentEmailResponseDTO.class);
     }
 
-    public List<SelfEmailResponseDTO> getSelfGmail(Authentication authentication) throws IOException {
-        String username = authentication.getName();
+    public List<ImportantEmailResponseDTO> getImportantGmail(Authentication auth) throws IOException {
+        return getEmailsByLabel(auth, "STARRED", ImportantEmailResponseDTO.class);
+    }
 
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+    public List<SpamEmailResponseDTO> getSpamGmail(Authentication auth) throws IOException {
+        return getEmailsByLabel(auth, "SPAM", SpamEmailResponseDTO.class);
+    }
+
+    public List<DraftEmailResponseDTO> getDraftGmail(Authentication auth) throws IOException {
+        User user = getUser(auth);
+        Gmail gmail = getGmailService(user);
+
+        ListDraftsResponse draftsResponse = gmail.users().drafts()
+                .list(user.getEmail())
+                .setMaxResults(10L)
+                .execute();
+
+        List<Draft> drafts = draftsResponse.getDrafts();
+        List<DraftEmailResponseDTO> draftDTOs = new ArrayList<>();
+
+        if (drafts != null) {
+            for (Draft draft : drafts) {
+                String draftId = draft.getId();
+
+                Message message = gmail.users().messages()
+                        .get(user.getEmail(), draft.getMessage().getId())
+                        .execute();
+
+                String subject = null, receiver = null;
+                LocalDateTime createdAt = null;
+
+                for (MessagePartHeader header : message.getPayload().getHeaders()) {
+                    if ("Subject".equals(header.getName())) subject = header.getValue();
+                    if ("To".equals(header.getName())) receiver = header.getValue();
+                    if ("Date".equals(header.getName())) {
+                        String dateStr = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+                        ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+                        createdAt = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+                    }
+                }
+
+                List<HashMap<String, String>> attachments = getAttachments(message);
+
+                DraftEmailResponseDTO dto = DraftEmailResponseDTO.builder()
+                        .draftId(draftId)
+                        .id(message.getId())
+                        .title(subject)
+                        .content(message.getSnippet())
+                        .receiver(receiver)
+                        .createdAt(createdAt)
+                        .isImportant(message.getLabelIds().contains("STARRED"))
+                        .fileNameList(attachments)
+                        .build();
+
+                draftDTOs.add(dto);
+            }
         }
 
-        User user = op_user.get();
-        String userEmail = user.getEmail();
+        return draftDTOs;
+    }
 
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
 
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        // 내게 보낸 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
-                .setMaxResults(10L)
+    // 내게 쓴 메일함은 라벨이 SENT, INBOX가 동시에 붙어있어서 user entity 조회
+    public List<SelfEmailResponseDTO> getSelfGmail(Authentication auth) throws IOException {
+        User user = getUser(auth);
+        Gmail gmail = getGmailService(user);
+        List<Message> messages = gmail.users().messages().list(user.getEmail())
                 .setLabelIds(List.of("SENT", "INBOX"))
-                .execute()
-                .getMessages();
+                .setMaxResults(10L).execute().getMessages();
 
-        List<SelfEmailResponseDTO> selfEmailDTOs = new ArrayList<>();
-
-        for(Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
-            String title = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 수신자, 발신 날짜 확인
-            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
-                switch (header.getName()){
-                    case "Subject":
-                        title = header.getValue(); break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            List<String> labelIds = detailMessage.getLabelIds();
-            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
-
-            selfEmailDTOs.add(SelfEmailResponseDTO.builder()
-                    .id(detailMessage.getId())
-                    .title(title)
-                    .content(detailMessage.getSnippet())
-                    .sendAt(date)
-                    .isImportant(labelIds.contains("STARRED"))
-                    .fileNameList(fileNameList)
-                    .build()
-            );
+        List<SelfEmailResponseDTO> emails = new ArrayList<>();
+        for (Message msg : messages) {
+            emails.add(mapToDTO(gmail, user.getEmail(), msg, SelfEmailResponseDTO.class));
         }
-
-        return selfEmailDTOs;
+        return emails;
     }
 
-    public List<ImportantEmailResponseDTO> getImportantGmail(Authentication authentication) throws IOException {
-        String username = authentication.getName();
+    // 파일 첨부 리소스 조회
+    public String getFileResource(String mailId, String attachmentId, Authentication auth) throws IOException {
+        User user = getUser(auth);
+        Gmail gmail = getGmailService(user);
+        return gmail.users().messages().attachments()
+                .get(user.getEmail(), mailId, attachmentId).execute().getData();
+    }
 
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
+    // 특정 이메일 검색
+    public List<ImportantEmailResponseDTO> searchGmailsByUserEmail(SearchGmailsByUserEmailRequestDTO request, Authentication auth) throws IOException {
+        User user = getUser(auth);
+        Gmail gmail = getGmailService(user);
+
+        String query = String.format("{from:%s is:inbox} OR {to:%s is:sent}",
+                request.getUserEmail(), request.getUserEmail());
+
+        List<Message> messages = gmail.users().messages().list(user.getEmail())
+                .setQ(query)
+                .setMaxResults(10L).execute().getMessages();
+
+        List<ImportantEmailResponseDTO> result = new ArrayList<>();
+        for (Message msg : messages) {
+            result.add(mapToDTO(gmail, user.getEmail(), msg, ImportantEmailResponseDTO.class));
         }
 
-        User user = op_user.get();
-        String userEmail = user.getEmail();
+        return result;
+    }
 
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
+    // 유저 조회
+    private User getUser(Authentication auth) {
+        return userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST));
+    }
+
+    // Gmail 생성
+    private Gmail getGmailService(User user) {
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
-
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
+        return new Gmail.Builder(httpTransport, jsonFactory, new HttpCredentialsAdapter(credentials))
                 .setApplicationName("maeil-mail")
                 .build();
-
-        // 중요 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
-                .setMaxResults(10L)
-                .setLabelIds(List.of("STARRED"))
-                .execute()
-                .getMessages();
-
-        List<ImportantEmailResponseDTO> importantEmailDTOs = new ArrayList<>();
-
-        for(Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
-            String title = null, from= null, to = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 수신자, 발신 날짜 확인
-            for (MessagePartHeader header : detailMessage.getPayload().getHeaders()) {
-                switch (header.getName()) {
-                    case "Subject":
-                        title = header.getValue();
-                        break;
-                    case "To":
-                        to = header.getValue();
-                        break;
-                    case "From":
-                        from = header.getValue();
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            List<String> labelIds = detailMessage.getLabelIds();
-            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
-
-            if(labelIds.contains("SENT") && labelIds.contains("INBOX")) {
-                importantEmailDTOs.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(date)
-                        .receiveAt(null)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            } else if (labelIds.contains("SENT")) {
-                importantEmailDTOs.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(date)
-                        .receiveAt(null)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            }else if(labelIds.contains("INBOX")){
-                importantEmailDTOs.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(null)
-                        .receiveAt(date)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            }else if(labelIds.contains("DRAFT")){
-                importantEmailDTOs.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(null)
-                        .receiveAt(null)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            }else{
-                System.out.println("중요 메일 처리 중 예외 메일 발생");
-            }
-        }
-        return importantEmailDTOs;
     }
 
-    public List<DraftEmailResponseDTO> getDraftGmail(Authentication authentication) throws IOException {
-        String username = authentication.getName();
+    /** 라벨 기준으로 메일 조회
+     *
+     * @param auth
+     * @param label (수송신 임시 스팸 내게쓰기)
+     * @param dtoClass
+     * @return
+     * @param <T>
+     * @throws IOException
+     */
+    private <T> List<T> getEmailsByLabel(Authentication auth, String label, Class<T> dtoClass) throws IOException {
+        User user = getUser(auth);
+        Gmail gmail = getGmailService(user);
+        List<Message> messages = gmail.users().messages().list(user.getEmail())
+                .setLabelIds(List.of(label))
+                .setMaxResults(10L).execute().getMessages();
 
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-        String userEmail = user.getEmail();
-
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
-
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        // 임시 이메일 리스트 요청
-        List<Message> inboxMessages = gmail.users().messages().list(userEmail)
-                .setMaxResults(10L)
-                .setLabelIds(List.of("DRAFT"))
-                .execute()
-                .getMessages();
-
-        List<DraftEmailResponseDTO> draftEmailDTOs = new ArrayList<>();
-
-        for(Message messageInfo : inboxMessages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
-            String title = null, to = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 수신자, 발신 날짜 확인
-            for(MessagePartHeader header : detailMessage.getPayload().getHeaders()){
-                switch (header.getName()){
-                    case "Subject":
-                        title = header.getValue();
-                        break;
-                    case "To":
-                        to = header.getValue();
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            List<String> labelIds = detailMessage.getLabelIds();
-            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
-
-            draftEmailDTOs.add(DraftEmailResponseDTO.builder()
-                    .id(detailMessage.getId())
-                    .title(title)
-                    .content(detailMessage.getSnippet())
-                    .receiver(to)
-                    .createdAt(date)
-                    .isImportant(labelIds.contains("STARRED"))
-                    .fileNameList(fileNameList)
-                    .build()
-            );
-        }
-
-        return draftEmailDTOs;
-    }
-
-    public String getFileResource(String mailId, String attachmentId, Authentication authentication) throws IOException {
-        String username = authentication.getName();
-
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-        String userEmail = user.getEmail();
-
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
-
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        MessagePartBody file = gmail.users().messages().attachments()
-                .get(user.getEmail(), mailId, attachmentId).execute();
-
-        return file.getData();
-    }
-
-    public List<ImportantEmailResponseDTO> searchGmailsByUserEmail(SearchGmailsByUserEmailRequestDTO requestDTO, Authentication authentication) throws IOException {
-        String username = authentication.getName();
-
-        // 유저 확인
-        Optional<User> op_user = userRepository.findByUsername(username);
-        if (op_user.isEmpty()) {
-            throw new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST);
-        }
-
-        User user = op_user.get();
-        String userEmail = user.getEmail();
-
-        // OAuth2 AccessToken을 GoogleCredentials로 변환
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
-
-        //Gmail api 요청 객체 생성
-        Gmail gmail = new Gmail.Builder(httpTransport, jsonFactory, null)
-                .setHttpRequestInitializer(new HttpCredentialsAdapter(credentials))
-                .setApplicationName("maeil-mail")
-                .build();
-
-        String searchUserEmail = requestDTO.getUserEmail();
-
-        // 특정 사용자와 주고 받은 이메일 리스트 요청
-        List<Message> messages = gmail.users().messages().list(userEmail)
-                .setMaxResults(10L)
-                .setQ("{from: %s AND is:inbox} OR {to: %s AND is:sent}".formatted(searchUserEmail, searchUserEmail))
-                .execute()
-                .getMessages();
-
-        List<ImportantEmailResponseDTO> searchedMessages = new ArrayList<>();
-
-        for(Message messageInfo : messages) {
-            // 단일 이메일 조회
-            Message detailMessage = gmail.users().messages().get(userEmail, messageInfo.getId()).execute();
-            String title = null, from= null, to = null;
-            LocalDateTime date = null;
-
-            // 헤더에서 제목, 수신자, 발신 날짜 확인
-            for (MessagePartHeader header : detailMessage.getPayload().getHeaders()) {
-                switch (header.getName()) {
-                    case "Subject":
-                        title = header.getValue();
-                        break;
-                    case "To":
-                        to = header.getValue();
-                        break;
-                    case "From":
-                        from = header.getValue();
-                        break;
-                    case "Date":
-                        // Date를 LocalDateTime 타입에 맞게 변환
-                        String dateString = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
-                        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME;
-                        ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateString, formatter);
-                        ZonedDateTime koreaTime = zonedDateTime.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
-                        date = koreaTime.toLocalDateTime();
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            List<String> labelIds = detailMessage.getLabelIds();
-            List<HashMap<String, String>> fileNameList = getFileNameList(detailMessage);
-
-            if(labelIds.contains("SENT") && labelIds.contains("INBOX")) {
-                searchedMessages.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(date)
-                        .receiveAt(null)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            } else if (labelIds.contains("SENT")) {
-                searchedMessages.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(date)
-                        .receiveAt(null)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            }else if(labelIds.contains("INBOX")){
-                searchedMessages.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(null)
-                        .receiveAt(date)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            }else if(labelIds.contains("DRAFT")){
-                searchedMessages.add(ImportantEmailResponseDTO.builder()
-                        .id(detailMessage.getId())
-                        .title(title)
-                        .content(detailMessage.getSnippet())
-                        .sender(from)
-                        .receiver(to)
-                        .sendAt(null)
-                        .receiveAt(null)
-                        .fileNameList(fileNameList)
-                        .build()
-                );
-            }else{
-                System.out.println("특정 사용자와 주고 받은 메일 처리 중 예외 메일 발생");
+        List<T> emailDTOs = new ArrayList<>();
+        if (messages != null) {
+            for (Message msg : messages) {
+                emailDTOs.add(mapToDTO(gmail, user.getEmail(), msg, dtoClass));
             }
         }
-        return searchedMessages;
+        return emailDTOs;
     }
 
+    // Message to DTO 변환
+    private <T> T mapToDTO(Gmail gmail, String userEmail, Message message, Class<T> dtoClass) throws IOException {
+        Message detail = gmail.users().messages().get(userEmail, message.getId()).execute();
+
+        Map<String, String> headers = new HashMap<>();
+        detail.getPayload().getHeaders().forEach(h -> headers.put(h.getName(), h.getValue()));
+
+        String dateStr = headers.getOrDefault("Date", "").replace(" (UTC)", "").replace(" (GMT)", "");
+        LocalDateTime date = null;
+        if (!dateStr.isEmpty()) {
+            ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+            date = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+        }
+
+        List<HashMap<String, String>> attachments = getAttachments(detail);
+
+        // 발신자 메일
+        if (dtoClass == ReceivedEmailResponseDTO.class) {
+            return dtoClass.cast(ReceivedEmailResponseDTO.builder()
+                    .id(message.getId()).title(headers.get("Subject"))
+                    .sender(headers.get("From")).content(detail.getSnippet())
+                    .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .fileNameList(attachments).build());
+        }
+        // 수신자 메일
+        if (dtoClass == SentEmailResponseDTO.class) {
+            return dtoClass.cast(SentEmailResponseDTO.builder()
+                    .id(message.getId()).title(headers.get("Subject"))
+                    .receiver(headers.get("To")).content(detail.getSnippet())
+                    .sendAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .fileNameList(attachments).build());
+        }
+
+        // 임시 메일
+        if (dtoClass == DraftEmailResponseDTO.class) {
+            return dtoClass.cast(DraftEmailResponseDTO.builder()
+                    .id(message.getId()).title(headers.get("Subject"))
+                    .receiver(headers.get("To")).content(detail.getSnippet())
+                    .createdAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .fileNameList(attachments).build());
+        }
+        // 중요 메일
+        if (dtoClass == ImportantEmailResponseDTO.class) {
+            return dtoClass.cast(ImportantEmailResponseDTO.builder()
+                    .id(message.getId()).title(headers.get("Subject"))
+                    .sender(headers.get("From")).receiver(headers.get("To"))
+                    .sendAt(detail.getLabelIds().contains("SENT") ? date : null)
+                    .receiveAt(detail.getLabelIds().contains("INBOX") ? date : null)
+                    .content(detail.getSnippet()).fileNameList(attachments).build());
+        }
+        // 내게쓰기 메일
+        if (dtoClass == SelfEmailResponseDTO.class) {
+            return dtoClass.cast(SelfEmailResponseDTO.builder()
+                    .id(message.getId()).title(headers.get("Subject"))
+                    .content(detail.getSnippet()).sendAt(date)
+                    .isImportant(detail.getLabelIds().contains("STARRED"))
+                    .fileNameList(attachments).build());
+        }
+        
+        throw new IllegalArgumentException("Unsupported DTO Type");
+    }
+    
+    // 메일 임시 삭제
     public List<String> deleteGmailTemporary(DeleteGmailTemporaryRequestDTO requestDTO, Authentication authentication) throws IOException {
         String username = authentication.getName();
 
@@ -780,6 +425,7 @@ public class GmailService {
         return deletedMailIdList;
     }
 
+    // 메일 영구 삭제
     public List<String> deleteGmailPermanent(DeleteGmailPermanentRequestDTO requestDTO, Authentication authentication) {
         String username = authentication.getName();
 
@@ -816,23 +462,20 @@ public class GmailService {
 
         return deletedMailIdList;
     }
-    // Message에서 fileName과 attachmentId로 구성된 HashMap 리스트를 추출해서 반환하는 메서드
-    private static List<HashMap<String, String>> getFileNameList(Message detailMessage) {
-        List<MessagePart> messageParts = detailMessage.getPayload().getParts();
-        List<HashMap<String, String>> fileNameList = new ArrayList<>();
 
-        if(messageParts != null){
-            for(MessagePart messagePart : messageParts){
-                String fileName = messagePart.getFilename();
-                if(fileName.isEmpty()){
-                    continue;
+    // 첨부파일 추출
+    private List<HashMap<String, String>> getAttachments(Message detail) {
+        List<HashMap<String, String>> attachments = new ArrayList<>();
+        if (detail.getPayload().getParts() != null) {
+            for (MessagePart part : detail.getPayload().getParts()) {
+                if (!part.getFilename().isEmpty()) {
+                    attachments.add(new HashMap<>() {{
+                        put("fileName", part.getFilename());
+                        put("attachmentId", part.getBody().getAttachmentId());
+                    }});
                 }
-                HashMap<String, String> fileInfo = new HashMap<>();
-                fileInfo.put("fileName", fileName);
-                fileInfo.put("attachmentId", messagePart.getBody().getAttachmentId());
-                fileNameList.add(fileInfo);
             }
         }
-        return fileNameList;
+        return attachments;
     }
 }
