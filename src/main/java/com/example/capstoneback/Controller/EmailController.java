@@ -1,21 +1,17 @@
 package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.*;
-import com.example.capstoneback.Error.NotValidArgumentException;
 import com.example.capstoneback.Service.EmailService;
 import com.example.capstoneback.Service.GmailService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.Errors;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,12 +63,24 @@ public class EmailController {
 //    }
 
     @PostMapping("/mails/search/userEmail")
-    public ResponseEntity<List<ImportantEmailResponseDTO>> searchGmailsByUserEmail(@Valid @RequestBody SearchGmailsByUserEmailRequestDTO requestDTO, Errors errors, Authentication authentication) throws IOException {
-        if(errors.hasErrors()) {
-            throw new NotValidArgumentException("not valid argument", errors);
-        }
-
+    public ResponseEntity<List<ImportantEmailResponseDTO>> searchGmailsByUserEmail(@RequestBody SearchGmailsByUserEmailRequestDTO requestDTO, Authentication authentication) throws IOException {
         List<ImportantEmailResponseDTO> responseDTO = gmailService.searchGmailsByUserEmail(requestDTO, authentication);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @DeleteMapping("/mails/trash/temporary")
+    public ResponseEntity<Map<String, Object>> deleteGmailTemporary(@RequestBody DeleteGmailTemporaryRequestDTO requestDTO, Authentication authentication) throws IOException {
+        List<String> movedToTrashMailIds = gmailService.deleteGmailTemporary(requestDTO, authentication);
+        Map<String, Object> response = new HashMap<>();
+        response.put("movedToTrashMailIds", movedToTrashMailIds);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/mails/trash/permanent")
+    public ResponseEntity<Map<String, Object>> deleteGmailPermanent(@RequestBody DeleteGmailPermanentRequestDTO requestDTO, Authentication authentication){
+        List<String> deletedMailIds = gmailService.deleteGmailPermanent(requestDTO, authentication);
+        Map<String, Object> response = new HashMap<>();
+        response.put("deletedMailIds", deletedMailIds);
+        return ResponseEntity.ok(response);
     }
 }

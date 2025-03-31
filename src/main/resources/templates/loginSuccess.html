@@ -35,6 +35,10 @@
     <button onclick="removeFromSpam()">스팸 해제</button>
     <button onclick="getSpamEmails()">스팸 메일 조회</button>
 </div>
+<h3>메일 삭제 API</h3>
+<input id="deleteMailId" placeholder="삭제할 메일 id" type="text">
+<button onclick="deleteGmailTemporary()">delete gmail temporary</button>
+<button onclick="deleteGmailPermanent()">delete gmail permanent</button>
 <h3>파일 관련 API</h3>
 <div>
     <h5>파일 저장 테스트 API(파일 저장 이메일 id는 1로 놓음)</h5>
@@ -64,6 +68,58 @@
 <br>
 <script>
     let accessToken = "";
+
+    async function deleteGmailTemporary(){
+        const selectedMailIds = document.getElementById("deleteMailId").value;
+        try {
+            const response = await fetch('http://localhost:8089/mails/trash/temporary', {
+                method: "delete",
+                credentials: "include",
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: accessToken,
+                },
+                body: JSON.stringify({
+                    'selectedMailIds': [selectedMailIds],
+                })
+            })
+            if (response.ok) {
+                alert('메일 임시 삭제 성공');
+                const data = await response.json();
+                console.log(data);
+            } else {
+                alert('메일 임시 삭제 실패');
+            }
+        } catch (error) {
+            alert("메일 임시 삭제 중 오류 발생")
+        }
+    }
+
+    async function deleteGmailPermanent(){
+        const selectedMailIds = document.getElementById("deleteMailId").value;
+        try {
+            const response = await fetch('http://localhost:8089/mails/trash/permanent', {
+                method: "delete",
+                credentials: "include",
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: accessToken,
+                },
+                body: JSON.stringify({
+                    'selectedMailIds': [selectedMailIds],
+                })
+            })
+            if (response.ok) {
+                alert('메일 영구 삭제 성공');
+                const data = await response.json();
+                console.log(data);
+            } else {
+                alert('메일 영구 삭제 실패');
+            }
+        } catch (error) {
+            alert("메일 영구 삭제 중 오류 발생")
+        }
+    }
 
     async function searchGmailsByUserEmail() {
         const userEmail = document.getElementById("searchUserEmail").value;
