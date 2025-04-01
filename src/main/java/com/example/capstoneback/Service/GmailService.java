@@ -222,7 +222,8 @@ public class GmailService {
                     if ("Subject".equals(header.getName())) subject = header.getValue();
                     if ("To".equals(header.getName())) receiver = header.getValue();
                     if ("Date".equals(header.getName())) {
-                        String dateStr = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "");
+                        String dateStr = header.getValue().replace(" (UTC)", "").replace(" (GMT)", "")
+                                .replaceAll("\\s{2,}", " "); // 연속된 공백을 하나로 변환
                         ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
                         createdAt = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
                     }
@@ -338,7 +339,8 @@ public class GmailService {
         Map<String, String> headers = new HashMap<>();
         detail.getPayload().getHeaders().forEach(h -> headers.put(h.getName(), h.getValue()));
 
-        String dateStr = headers.getOrDefault("Date", "").replace(" (UTC)", "").replace(" (GMT)", "");
+        String dateStr = headers.getOrDefault("Date", "").replace(" (UTC)", "").replace(" (GMT)", "")
+                .replaceAll("\\s{2,}", " "); // 연속된 공백을 하나로 변환
         LocalDateTime date = null;
         if (!dateStr.isEmpty()) {
             ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
