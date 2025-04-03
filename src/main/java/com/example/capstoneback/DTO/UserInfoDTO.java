@@ -23,6 +23,9 @@ public class UserInfoDTO {
         @NotNull(message = "학번을 입력해주세요.")
         @Positive(message = "양수를 입력해주세요.")
         private Integer studentNum;
+
+        @NotNull(message = "학생 이름을 입력해주세요.")
+        private String studentName;
     }
 
     @Getter
