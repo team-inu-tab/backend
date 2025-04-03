@@ -43,6 +43,18 @@
     </div>
     <br />
     <div>
+        <h3>메일 전송 (첨부파일 선택ㄱ적)</h3>
+        <input id="toEmail" type="email" placeholder="받는 사람 이메일" />
+        <br />
+        <input id="subject" type="text" placeholder="제목" />
+        <br />
+        <textarea id="body" placeholder="본문 내용"></textarea>
+        <br />
+        <input id="mailAttachment" type="file" />
+        <br />
+        <button onclick="sendMailWithOptionalAttachment()">메일 전송</button>
+    </div>
+    <div>
         <h3>임시메일</h3>
         <input id="draftId" type="text" placeholder="임시메일(Draft) ID (수정/삭제 시 필요)">
         <br>
@@ -535,7 +547,6 @@
             alert("먼저 refresh 버튼을 눌러 accessToken을 받아야 합니다.");
             return;
         }
-
         try {
             const response = await fetch('http://localhost:8089/mails/spam', {
                 method: "GET",
@@ -557,9 +568,41 @@
             console.error(error);
         }
     }
-
-
-
+    async function sendMailWithOptionalAttachment() {
+        const toEmail = document.getElementById("toEmail").value;
+        const subject = document.getElementById("subject").value;
+        const body = document.getElementById("body").value;
+        const fileInput = document.getElementById("mailAttachment");
+    
+        const formData = new FormData();
+        formData.append("to", toEmail);
+        formData.append("subject", subject);
+        formData.append("body", body);
+    
+        if (fileInput.files.length > 0) {
+            formData.append("file", fileInput.files[0]);
+        }
+    
+        try {
+            const response = await fetch("http://localhost:8089/mails/send", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken
+                },
+                body: formData
+            });
+    
+            if (response.ok) {
+                alert("메일 전송 성공!");
+            } else {
+                alert("메일 전송 실패");
+            }
+        } catch (error) {
+            alert("메일 전송 중 오류 발생");
+            console.error(error);
+        }
+    }
     </script>
 </body>
 
