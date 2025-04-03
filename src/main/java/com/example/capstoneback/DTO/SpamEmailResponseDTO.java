@@ -22,7 +22,7 @@ public class SpamEmailResponseDTO {
         this.id = id;
         this.title = title;
         this.content = content;
-        this.receiver = sender;
+        this.sender = sender;
         this.receiveAt = receiveAt;
         this.isImportant = isImportant;
         this.fileNameList = fileNameList;
