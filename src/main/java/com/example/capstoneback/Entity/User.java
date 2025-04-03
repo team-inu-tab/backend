@@ -34,6 +34,7 @@ public class User {
     private String schoolName;
     private String studentDepartment;
     private Integer studentNum;
+    private String studentName;
 
     //직장인 추가정보
     private String workerDepartment;
@@ -75,10 +76,11 @@ public class User {
     }
 
 
-    public void updateStudentInfo(String schoolName, String studentDepartment, Integer studentNum){
+    public void updateStudentInfo(String schoolName, String studentDepartment, Integer studentNum, String studentName){
         this.schoolName = schoolName;
         this.studentDepartment = studentDepartment;
         this.studentNum = studentNum;
+        this.studentName = studentName;
     }
 
     public void updateWorkerInfo(String workerDepartment, String company, String position){

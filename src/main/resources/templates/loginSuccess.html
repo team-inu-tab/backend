@@ -547,7 +547,6 @@
             alert("먼저 refresh 버튼을 눌러 accessToken을 받아야 합니다.");
             return;
         }
-
         try {
             const response = await fetch('http://localhost:8089/mails/spam', {
                 method: "GET",

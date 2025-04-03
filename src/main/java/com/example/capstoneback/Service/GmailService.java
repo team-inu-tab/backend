@@ -179,32 +179,45 @@ public class GmailService {
 //        }
 //    }
 
-    public List<ReceivedEmailResponseDTO> getReceivedGmail(Authentication auth) throws IOException {
-        return getEmailsByLabel(auth, "INBOX", ReceivedEmailResponseDTO.class);
+    public Map<String, Object> getReceivedGmail(String pageToken, Authentication auth) throws IOException {
+        return getEmailsByLabel(pageToken, auth, "INBOX", ReceivedEmailResponseDTO.class);
     }
 
-    public List<SentEmailResponseDTO> getSentGmail(Authentication auth) throws IOException {
-        return getEmailsByLabel(auth, "SENT", SentEmailResponseDTO.class);
+    public Map<String, Object> getSentGmail(String pageToken, Authentication auth) throws IOException {
+        return getEmailsByLabel(pageToken, auth, "SENT", SentEmailResponseDTO.class);
     }
 
-    public List<ImportantEmailResponseDTO> getImportantGmail(Authentication auth) throws IOException {
-        return getEmailsByLabel(auth, "STARRED", ImportantEmailResponseDTO.class);
+    public Map<String, Object> getImportantGmail(String pageToken, Authentication auth) throws IOException {
+        return getEmailsByLabel(pageToken, auth, "STARRED", ImportantEmailResponseDTO.class);
     }
 
-    public List<SpamEmailResponseDTO> getSpamGmail(Authentication auth) throws IOException {
-        return getEmailsByLabel(auth, "SPAM", SpamEmailResponseDTO.class);
+    public Map<String, Object> getSpamGmail(String pageToken, Authentication auth) throws IOException {
+        return getEmailsByLabel(pageToken, auth, "SPAM", SpamEmailResponseDTO.class);
     }
 
-    public List<DraftEmailResponseDTO> getDraftGmail(Authentication auth) throws IOException {
+    public Map<String, Object> getDraftGmail(String pageToken, Authentication auth) throws IOException {
         User user = getUser(auth);
         Gmail gmail = getGmailService(user);
+        ListDraftsResponse draftsResponse;
 
-        ListDraftsResponse draftsResponse = gmail.users().drafts()
-                .list(user.getEmail())
-                .setMaxResults(10L)
-                .execute();
+        if(pageToken == null){
+            draftsResponse = gmail.users().drafts()
+                    .list(user.getEmail())
+                    .setMaxResults(10L)
+                    .execute();
+        }else{
+            draftsResponse = gmail.users().drafts()
+                    .list(user.getEmail())
+                    .setPageToken(pageToken)
+                    .setMaxResults(10L)
+                    .execute();
+        }
+
+        Map<String, Object> result = new HashMap<>();
 
         List<Draft> drafts = draftsResponse.getDrafts();
+        String nextPageToken = draftsResponse.getNextPageToken();
+
         List<DraftEmailResponseDTO> draftDTOs = new ArrayList<>();
 
         if (drafts != null) {
@@ -246,23 +259,45 @@ public class GmailService {
             }
         }
 
-        return draftDTOs;
+        result.put("emails", draftDTOs);
+        result.put("nextPageToken", nextPageToken);
+
+        return result;
     }
 
 
     // 내게 쓴 메일함은 라벨이 SENT, INBOX가 동시에 붙어있어서 user entity 조회
-    public List<SelfEmailResponseDTO> getSelfGmail(Authentication auth) throws IOException {
+    public Map<String, Object> getSelfGmail(String pageToken, Authentication auth) throws IOException {
         User user = getUser(auth);
         Gmail gmail = getGmailService(user);
-        List<Message> messages = gmail.users().messages().list(user.getEmail())
-                .setLabelIds(List.of("SENT", "INBOX"))
-                .setMaxResults(10L).execute().getMessages();
+
+        ListMessagesResponse messagesResponse;
+
+        if(pageToken == null){
+            messagesResponse = gmail.users().messages().list(user.getEmail())
+                    .setLabelIds(List.of("SENT", "INBOX"))
+                    .setMaxResults(10L).execute();
+        }else{
+            messagesResponse = gmail.users().messages().list(user.getEmail())
+                    .setLabelIds(List.of("SENT", "INBOX"))
+                    .setPageToken(pageToken)
+                    .setMaxResults(10L).execute();
+        }
+
+        String nextPageToken = messagesResponse.getNextPageToken();
+        List<Message> messages = messagesResponse.getMessages();
+
+        Map<String, Object> result = new HashMap<>();
 
         List<SelfEmailResponseDTO> emails = new ArrayList<>();
         for (Message msg : messages) {
             emails.add(mapToDTO(gmail, user.getEmail(), msg, SelfEmailResponseDTO.class));
         }
-        return emails;
+
+        result.put("emails", emails);
+        result.put("nextPageToken", nextPageToken);
+
+        return result;
     }
 
     // 파일 첨부 리소스 조회
@@ -274,21 +309,37 @@ public class GmailService {
     }
 
     // 특정 이메일 검색
-    public List<ImportantEmailResponseDTO> searchGmailsByUserEmail(SearchGmailsByUserEmailRequestDTO request, Authentication auth) throws IOException {
+    public Map<String, Object> searchGmailsByUserEmail(SearchGmailsByUserEmailRequestDTO request, String pageToken, Authentication auth) throws IOException {
         User user = getUser(auth);
         Gmail gmail = getGmailService(user);
+        ListMessagesResponse messagesResponse;
 
         String query = String.format("{from:%s is:inbox} OR {to:%s is:sent}",
                 request.getUserEmail(), request.getUserEmail());
 
-        List<Message> messages = gmail.users().messages().list(user.getEmail())
-                .setQ(query)
-                .setMaxResults(10L).execute().getMessages();
-
-        List<ImportantEmailResponseDTO> result = new ArrayList<>();
-        for (Message msg : messages) {
-            result.add(mapToDTO(gmail, user.getEmail(), msg, ImportantEmailResponseDTO.class));
+        if(pageToken == null){
+            messagesResponse = gmail.users().messages().list(user.getEmail())
+                    .setQ(query)
+                    .setMaxResults(10L).execute();
+        }else{
+            messagesResponse = gmail.users().messages().list(user.getEmail())
+                    .setQ(query)
+                    .setPageToken(pageToken)
+                    .setMaxResults(10L).execute();
         }
+
+        String nextPageToken = messagesResponse.getNextPageToken();
+        List<Message> messages = messagesResponse.getMessages();
+
+        List<ImportantEmailResponseDTO> emails = new ArrayList<>();
+        for (Message msg : messages) {
+            emails.add(mapToDTO(gmail, user.getEmail(), msg, ImportantEmailResponseDTO.class));
+        }
+
+        Map<String, Object> result = new HashMap<>();
+
+        result.put("emails", emails);
+        result.put("nextPageToken", nextPageToken);
 
         return result;
     }
@@ -316,12 +367,26 @@ public class GmailService {
      * @param <T>
      * @throws IOException
      */
-    private <T> List<T> getEmailsByLabel(Authentication auth, String label, Class<T> dtoClass) throws IOException {
+    private <T> Map<String, Object> getEmailsByLabel(String pageToken, Authentication auth, String label, Class<T> dtoClass) throws IOException {
         User user = getUser(auth);
         Gmail gmail = getGmailService(user);
-        List<Message> messages = gmail.users().messages().list(user.getEmail())
-                .setLabelIds(List.of(label))
-                .setMaxResults(10L).execute().getMessages();
+        ListMessagesResponse messagesResponse;
+
+        if(pageToken == null){
+            messagesResponse = gmail.users().messages().list(user.getEmail())
+                    .setLabelIds(List.of(label))
+                    .setMaxResults(10L).execute();
+        }else{
+            messagesResponse = gmail.users().messages().list(user.getEmail())
+                    .setPageToken(pageToken)
+                    .setLabelIds(List.of(label))
+                    .setMaxResults(10L).execute();
+        }
+
+        String nextPageToken = messagesResponse.getNextPageToken();
+        List<Message> messages = messagesResponse.getMessages();
+
+        Map<String, Object> result = new HashMap<>();
 
         List<T> emailDTOs = new ArrayList<>();
         if (messages != null) {
@@ -329,7 +394,10 @@ public class GmailService {
                 emailDTOs.add(mapToDTO(gmail, user.getEmail(), msg, dtoClass));
             }
         }
-        return emailDTOs;
+
+        result.put("emails", emailDTOs);
+        result.put("nextPageToken", nextPageToken);
+        return result;
     }
 
     // Message to DTO 변환
@@ -391,14 +459,15 @@ public class GmailService {
                     .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
-
+        // 스팸 메일
         if (dtoClass == SpamEmailResponseDTO.class) {
             return dtoClass.cast(SpamEmailResponseDTO.builder()
                     .id(message.getId()).title(headers.get("Subject"))
-                    .receiver(headers.get("To")).content(detail.getSnippet())
+                    .sender(headers.get("To")).content(detail.getSnippet())
                     .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
+       
         throw new IllegalArgumentException("Unsupported DTO Type");
     }
     

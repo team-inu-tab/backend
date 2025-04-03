@@ -1,7 +1,6 @@
 package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.*;
-import com.example.capstoneback.Service.EmailService;
 import com.example.capstoneback.Service.GmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,26 +20,26 @@ public class EmailController {
     private final GmailService gmailService;
 
     @GetMapping("/mails/receive")
-    public ResponseEntity<List<ReceivedEmailResponseDTO>> getReceivedEmails(Authentication authentication) throws IOException {
-        List<ReceivedEmailResponseDTO> responseDTO = gmailService.getReceivedGmail(authentication);
+    public ResponseEntity<Map<String, Object>> getReceivedEmails(@RequestParam(name = "pageToken", required = false) String pageToken, Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getReceivedGmail(pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/mails/send")
-    public ResponseEntity<List<SentEmailResponseDTO>> getSentEmails(Authentication authentication) throws IOException {
-        List<SentEmailResponseDTO> responseDTO = gmailService.getSentGmail(authentication);
+    public ResponseEntity<Map<String, Object>> getSentEmails(@RequestParam(name = "pageToken", required = false) String pageToken,Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getSentGmail(pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/mails/self")
-    public ResponseEntity<List<SelfEmailResponseDTO>> getSelfEmail(Authentication authentication) throws IOException {
-        List<SelfEmailResponseDTO> responseDTO = gmailService.getSelfGmail(authentication);
+    public ResponseEntity<Map<String, Object>> getSelfEmail(@RequestParam(name = "pageToken", required = false) String pageToken,Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getSelfGmail(pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/mails/important")
-    public ResponseEntity<List<ImportantEmailResponseDTO>> getImportantEmails(Authentication authentication) throws IOException {
-        List<ImportantEmailResponseDTO> responseDTO = gmailService.getImportantGmail(authentication);
+    public ResponseEntity<Map<String, Object>> getImportantEmails(@RequestParam(name = "pageToken", required = false) String pageToken, Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getImportantGmail(pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -51,8 +50,8 @@ public class EmailController {
 //    }
 
     @GetMapping("/mails/draft")
-    public ResponseEntity<List<DraftEmailResponseDTO>> getDraftEmails(Authentication authentication) throws IOException {
-        List<DraftEmailResponseDTO> responseDTO = gmailService.getDraftGmail(authentication);
+    public ResponseEntity<Map<String, Object>> getDraftEmails(@RequestParam(name = "pageToken", required = false) String pageToken, Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getDraftGmail(pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -63,14 +62,14 @@ public class EmailController {
 //    }
 
     @GetMapping("/mails/spam")
-    public ResponseEntity<List<SpamEmailResponseDTO>> getSpamEmails(Authentication authentication) throws IOException {
-        List<SpamEmailResponseDTO> responseDTO = gmailService.getSpamGmail(authentication);
+    public ResponseEntity<Map<String, Object>> getSpamEmails(@RequestParam(name = "pageToken", required = false) String pageToken, Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getSpamGmail(pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
     @PostMapping("/mails/search/userEmail")
-    public ResponseEntity<List<ImportantEmailResponseDTO>> searchGmailsByUserEmail(@RequestBody SearchGmailsByUserEmailRequestDTO requestDTO, Authentication authentication) throws IOException {
-        List<ImportantEmailResponseDTO> responseDTO = gmailService.searchGmailsByUserEmail(requestDTO, authentication);
+    public ResponseEntity<Map<String, Object>> searchGmailsByUserEmail(@RequestBody SearchGmailsByUserEmailRequestDTO requestDTO, @RequestParam(name = "pageToken", required = false) String pageToken, Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.searchGmailsByUserEmail(requestDTO, pageToken, authentication);
         return ResponseEntity.ok(responseDTO);
     }
 
