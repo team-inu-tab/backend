@@ -7,14 +7,19 @@ import com.example.capstoneback.Repository.UserRepository;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
+import jakarta.mail.Multipart;
 import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Properties;
@@ -42,6 +47,38 @@ public class GmailMailSenderService {
         email.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(to));
         email.setSubject(subject, StandardCharsets.UTF_8.name());
         email.setText(bodyText, StandardCharsets.UTF_8.name());
+        return email;
+    }
+    /**
+     * 1) MimeMessage를 만드는 헬퍼 함수 그런데 이제 첨부파일이 들어간
+     */
+    private MimeMessage createEmailWithAttachment(String from,
+                                                  String to,
+                                                  String subject,
+                                                  String bodyText,
+                                                  File attachment) throws Exception {
+        Properties props = new Properties();
+        Session session = Session.getInstance(props, null);
+
+        MimeMessage email = new MimeMessage(session);
+        email.setFrom(new InternetAddress(from));
+        email.addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(to));
+        email.setSubject(subject, StandardCharsets.UTF_8.name());
+
+        // 본문 생성
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText(bodyText, StandardCharsets.UTF_8.name());
+
+        // 첨부파일 Part 생성
+        MimeBodyPart attachmentPart = new MimeBodyPart();
+        attachmentPart.attachFile(attachment); // File 객체에서 읽음
+
+        // 둘을 묶기
+        Multipart multipart = new MimeMultipart();
+        multipart.addBodyPart(textPart);
+        multipart.addBodyPart(attachmentPart);
+
+        email.setContent(multipart);
         return email;
     }
 
@@ -80,25 +117,63 @@ public class GmailMailSenderService {
     /**
      * 외부에서 호출되는 실제 메일 보내기
      */
-    public void sendEmail(Authentication authentication, String toEmail, String subject, String body) {
+//    public void sendEmail(Authentication authentication, String toEmail, String subject, String body) {
+//        try {
+//            String username = authentication.getName();
+//            User user = userRepository.findByUsername(username)
+//                    .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+//
+//            // 서버 저장된 Refresh Token으로 Gmail API 인증
+//            Gmail service = gmailServiceBuilder.getGmailService(user);
+//
+//            MimeMessage emailContent = createEmail(
+//                    user.getEmail(), toEmail, subject, body
+//            );
+//
+//            Message message = sendMessage(service, user.getUsername(), emailContent);
+//            System.out.println("이메일 전송 성공. ID: " + message.getId());
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
+//        }
+//    }
+    /**
+     * 외부에서 호출되는 실제 메일 보내기 그런데 이제 첨부파일이 들어갈수도 있고 아닐수도 있고
+     */
+    public void sendEmail(Authentication authentication, String toEmail, String subject, String body, MultipartFile attachmentFile) {
+        File tempFile = null;
+
         try {
             String username = authentication.getName();
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
 
-            // 서버 저장된 Refresh Token으로 Gmail API 인증
             Gmail service = gmailServiceBuilder.getGmailService(user);
 
-            MimeMessage emailContent = createEmail(
-                    user.getEmail(), toEmail, subject, body
-            );
+            MimeMessage emailContent;
 
-            Message message = sendMessage(service, user.getUsername(), emailContent);
+            if (attachmentFile != null && !attachmentFile.isEmpty()) {
+                tempFile = File.createTempFile("upload-", attachmentFile.getOriginalFilename());
+                attachmentFile.transferTo(tempFile);
+
+                emailContent = createEmailWithAttachment(
+                        user.getEmail(), toEmail, subject, body, tempFile
+                );
+            } else {
+                emailContent = createEmail(user.getEmail(), toEmail, subject, body);
+            }
+
+            Message message = sendMessage(service, "me", emailContent);
             System.out.println("이메일 전송 성공. ID: " + message.getId());
 
         } catch (Exception e) {
             e.printStackTrace();
             throw new GmailSendFailedException(ErrorCode.USER_DOESNT_EXIST);
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete(); // 메일 전송 후 임시파일 삭제
+            }
         }
     }
 
