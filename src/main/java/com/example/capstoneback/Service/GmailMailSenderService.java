@@ -71,7 +71,7 @@ public class GmailMailSenderService {
 
         // 첨부파일 Part 생성
         MimeBodyPart attachmentPart = new MimeBodyPart();
-        attachmentPart.attachFile(attachment); // File 객체에서 읽음
+        attachmentPart.attachFile(attachment); // File에서 읽음
 
         // 둘을 묶기
         Multipart multipart = new MimeMultipart();
@@ -148,11 +148,12 @@ public class GmailMailSenderService {
             String username = authentication.getName();
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
-
+            // 서버 저장된 Refresh Token으로 Gmail API 인증
             Gmail service = gmailServiceBuilder.getGmailService(user);
 
             MimeMessage emailContent;
 
+            // 전송파일이 있을경우
             if (attachmentFile != null && !attachmentFile.isEmpty()) {
                 tempFile = File.createTempFile("upload-", attachmentFile.getOriginalFilename());
                 attachmentFile.transferTo(tempFile);
@@ -161,9 +162,11 @@ public class GmailMailSenderService {
                         user.getEmail(), toEmail, subject, body, tempFile
                 );
             } else {
+                // 전송파일이 없는 경우
                 emailContent = createEmail(user.getEmail(), toEmail, subject, body);
             }
 
+            // 기존 이메일 전송 로직
             Message message = sendMessage(service, "me", emailContent);
             System.out.println("이메일 전송 성공. ID: " + message.getId());
 
