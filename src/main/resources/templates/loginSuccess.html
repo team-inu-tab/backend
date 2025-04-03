@@ -23,6 +23,7 @@
     <button onclick="getImportantEmails()">get important emails</button>
     <button onclick="getScheduledEmails()">get scheduled emails</button>
     <button onclick="getDraftEmails()">get draft emails</button>
+    <button onclick="getSpamEmails()">get spam emails</button>
     <h3>메일 삭제 API</h3>
     <input id="deleteMailId" placeholder="삭제할 메일 id" type="text">
     <button onclick="deleteGmailTemporary()">delete gmail temporary</button>
@@ -527,6 +528,33 @@
             }
         } catch (error) {
             alert("임시메일 삭제 중 오류 발생");
+        }
+    }
+    async function getSpamEmails() {
+        if (!accessToken) {
+            alert("먼저 refresh 버튼을 눌러 accessToken을 받아야 합니다.");
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8089/mails/spam', {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,
+                }
+            });
+
+            if (response.ok) {
+                alert('스팸 메일 수신 성공(콘솔에 데이터 확인)');
+                const data = await response.json();
+                console.log(data);
+            } else {
+                alert('스팸 메일 수신 실패');
+            }
+        } catch (error) {
+            alert("스팸 메일 수신 중 오류 발생");
+            console.error(error);
         }
     }
 
