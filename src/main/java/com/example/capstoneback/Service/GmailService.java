@@ -391,7 +391,14 @@ public class GmailService {
                     .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
-        
+
+        if (dtoClass == SpamEmailResponseDTO.class) {
+            return dtoClass.cast(SpamEmailResponseDTO.builder()
+                    .id(message.getId()).title(headers.get("Subject"))
+                    .receiver(headers.get("To")).content(detail.getSnippet())
+                    .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .fileNameList(attachments).build());
+        }
         throw new IllegalArgumentException("Unsupported DTO Type");
     }
     
