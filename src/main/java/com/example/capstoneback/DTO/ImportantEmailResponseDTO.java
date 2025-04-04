@@ -1,5 +1,6 @@
 package com.example.capstoneback.DTO;
 
+import com.google.api.services.gmail.model.MessagePart;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,7 +12,7 @@ import java.util.List;
 public class ImportantEmailResponseDTO {
     private String id;
     private String title;
-    private String content;
+    private MessagePart content;
     private String sender;
     private String receiver;
     private LocalDateTime receiveAt;
@@ -19,7 +20,7 @@ public class ImportantEmailResponseDTO {
     private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public ImportantEmailResponseDTO(String id, String title, String content, String sender, String receiver, LocalDateTime receiveAt, LocalDateTime sendAt, boolean isImportant, List<HashMap<String, String>> fileNameList) {
+    public ImportantEmailResponseDTO(String id, String title, MessagePart content, String sender, String receiver, LocalDateTime receiveAt, LocalDateTime sendAt, boolean isImportant, List<HashMap<String, String>> fileNameList) {
         this.id = id;
         this.title = title;
         this.content = content;
