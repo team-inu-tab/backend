@@ -100,4 +100,12 @@ public class GlobalExceptionHandler { // 전역 에러 처리 클래스
         errorResponse.put("message", e.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    // 사용자의 google oauth2 access token이 만료되었을 때 발생하는 에러 처리
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException e) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", e.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }

@@ -248,7 +248,7 @@ public class GmailService {
                         .draftId(draftId)
                         .id(message.getId())
                         .title(subject)
-                        .content(message.getSnippet())
+                        .content(message.getPayload())
                         .receiver(receiver)
                         .createdAt(createdAt)
                         .isImportant(message.getLabelIds().contains("STARRED"))
@@ -417,19 +417,24 @@ public class GmailService {
 
         List<HashMap<String, String>> attachments = getAttachments(detail);
 
-        // 발신자 메일
+        // 받은 메일
+
         if (dtoClass == ReceivedEmailResponseDTO.class) {
             return dtoClass.cast(ReceivedEmailResponseDTO.builder()
-                    .id(message.getId()).title(headers.get("Subject"))
-                    .sender(headers.get("From")).content(detail.getSnippet())
+                    .id(message.getId())
+                    .title(headers.get("Subject"))
+                    .sender(headers.get("From"))
+                    .content(detail.getPayload())
                     .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
-        // 수신자 메일
+        // 보낸 메일
         if (dtoClass == SentEmailResponseDTO.class) {
             return dtoClass.cast(SentEmailResponseDTO.builder()
-                    .id(message.getId()).title(headers.get("Subject"))
-                    .receiver(headers.get("To")).content(detail.getSnippet())
+                    .id(message.getId())
+                    .title(headers.get("Subject"))
+                    .receiver(headers.get("To"))
+                    .content(detail.getPayload())
                     .sendAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
@@ -437,33 +442,42 @@ public class GmailService {
         // 임시 메일
         if (dtoClass == DraftEmailResponseDTO.class) {
             return dtoClass.cast(DraftEmailResponseDTO.builder()
-                    .id(message.getId()).title(headers.get("Subject"))
-                    .receiver(headers.get("To")).content(detail.getSnippet())
+                    .id(message.getId())
+                    .title(headers.get("Subject"))
+                    .receiver(headers.get("To"))
+                    .content(detail.getPayload())
                     .createdAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
         // 중요 메일
         if (dtoClass == ImportantEmailResponseDTO.class) {
             return dtoClass.cast(ImportantEmailResponseDTO.builder()
-                    .id(message.getId()).title(headers.get("Subject"))
-                    .sender(headers.get("From")).receiver(headers.get("To"))
+                    .id(message.getId())
+                    .title(headers.get("Subject"))
+                    .sender(headers.get("From"))
+                    .receiver(headers.get("To"))
                     .sendAt(detail.getLabelIds().contains("SENT") ? date : null)
                     .receiveAt(detail.getLabelIds().contains("INBOX") ? date : null)
-                    .content(detail.getSnippet()).fileNameList(attachments).build());
+                    .content(detail.getPayload())
+                    .build());
         }
-        // 내게쓰기 메일
+        // 내게 쓴 메일
         if (dtoClass == SelfEmailResponseDTO.class) {
             return dtoClass.cast(SelfEmailResponseDTO.builder()
-                    .id(message.getId()).title(headers.get("Subject"))
-                    .content(detail.getSnippet()).sendAt(date)
+                    .id(message.getId())
+                    .title(headers.get("Subject"))
+                    .content(detail.getPayload())
+                    .sendAt(date)
                     .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
         // 스팸 메일
         if (dtoClass == SpamEmailResponseDTO.class) {
             return dtoClass.cast(SpamEmailResponseDTO.builder()
-                    .id(message.getId()).title(headers.get("Subject"))
-                    .sender(headers.get("From")).content(detail.getSnippet())
+                    .id(message.getId())
+                    .title(headers.get("Subject"))
+                    .sender(headers.get("From"))
+                    .content(detail.getPayload())
                     .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
