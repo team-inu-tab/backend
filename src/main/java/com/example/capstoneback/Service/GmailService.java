@@ -418,7 +418,6 @@ public class GmailService {
         List<HashMap<String, String>> attachments = getAttachments(detail);
 
         // 받은 메일
-
         if (dtoClass == ReceivedEmailResponseDTO.class) {
             return dtoClass.cast(ReceivedEmailResponseDTO.builder()
                     .id(message.getId())
@@ -451,8 +450,10 @@ public class GmailService {
         }
         // 중요 메일
         if (dtoClass == ImportantEmailResponseDTO.class) {
+            String mailType = getMailType(detail);
             return dtoClass.cast(ImportantEmailResponseDTO.builder()
                     .id(message.getId())
+                    .mailType(mailType)
                     .title(headers.get("Subject"))
                     .sender(headers.get("From"))
                     .receiver(headers.get("To"))
@@ -484,7 +485,7 @@ public class GmailService {
        
         throw new IllegalArgumentException("Unsupported DTO Type");
     }
-    
+
     // 메일 임시 삭제
     public List<String> deleteGmailTemporary(DeleteGmailTemporaryRequestDTO requestDTO, Authentication authentication) throws IOException {
         String username = authentication.getName();
@@ -569,5 +570,22 @@ public class GmailService {
             }
         }
         return attachments;
+    }
+
+    // 메일 타입 추출 메서드
+    private static String getMailType(Message message) {
+        String mailType;
+        if(message.getLabelIds().contains("INBOX") && message.getLabelIds().contains("SENT")){
+            mailType = "self";
+        }else if(message.getLabelIds().contains("SENT")){
+            mailType = "sent";
+        }else if (message.getLabelIds().contains("INBOX")){
+            mailType = "received";
+        }else if (message.getLabelIds().contains("DRAFT")){
+            mailType = "draft";
+        }else{
+            mailType = "unknown";
+        }
+        return mailType;
     }
 }
