@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 public class ImportantEmailResponseDTO {
     private String id;
+    private String mailType;
     private String title;
     private MessagePart content;
     private String sender;
@@ -20,8 +21,9 @@ public class ImportantEmailResponseDTO {
     private List<HashMap<String, String>> fileNameList;
 
     @Builder
-    public ImportantEmailResponseDTO(String id, String title, MessagePart content, String sender, String receiver, LocalDateTime receiveAt, LocalDateTime sendAt, boolean isImportant, List<HashMap<String, String>> fileNameList) {
+    public ImportantEmailResponseDTO(String id, String title, String mailType, MessagePart content, String sender, String receiver, LocalDateTime receiveAt, LocalDateTime sendAt, List<HashMap<String, String>> fileNameList) {
         this.id = id;
+        this.mailType = mailType;
         this.title = title;
         this.content = content;
         this.sender = sender;
