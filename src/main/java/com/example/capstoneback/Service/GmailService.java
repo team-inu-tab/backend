@@ -314,7 +314,7 @@ public class GmailService {
         Gmail gmail = getGmailService(user);
         ListMessagesResponse messagesResponse;
 
-        String query = String.format("{from:%s is:inbox} OR {to:%s is:sent}",
+        String query = String.format("{from: %s AND is:inbox} OR {to: %s AND is:sent}",
                 request.getUserEmail(), request.getUserEmail());
 
         if(pageToken == null){
