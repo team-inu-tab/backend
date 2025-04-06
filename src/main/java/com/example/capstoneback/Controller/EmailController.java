@@ -88,4 +88,10 @@ public class EmailController {
         response.put("deletedMailIds", deletedMailIds);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/mails/trash")
+    public ResponseEntity<Map<String, Object>> getTrashEmails(@RequestParam(name = "pageToken", required = false) String pageToken, Authentication authentication) throws IOException {
+        Map<String, Object> responseDTO = gmailService.getTrashGmail(pageToken, authentication);
+        return ResponseEntity.ok(responseDTO);
+    }
 }
