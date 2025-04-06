@@ -195,6 +195,10 @@ public class GmailService {
         return getEmailsByLabel(pageToken, auth, "SPAM", SpamEmailResponseDTO.class);
     }
 
+    public Map<String, Object> getTrashGmail(String pageToken, Authentication auth) throws IOException {
+        return getEmailsByLabel(pageToken, auth, "TRASH", TrashGmailResponseDTO.class);
+    }
+
     public Map<String, Object> getDraftGmail(String pageToken, Authentication auth) throws IOException {
         User user = getUser(auth);
         Gmail gmail = getGmailService(user);
@@ -481,6 +485,36 @@ public class GmailService {
                     .content(detail.getPayload())
                     .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
+        }
+        // 휴지통 메일
+        if(dtoClass == TrashGmailResponseDTO.class) {
+            String mailType;
+            if(detail.getLabelIds().contains("SENT")){
+                mailType = "sent";
+            }else{
+                mailType = "received";
+            }
+            if(headers.get("From").equals(headers.get("To"))) mailType = "self";
+
+            LocalDateTime sendAt, receiveAt;
+            if(detail.getLabelIds().contains("SENT")){
+                sendAt = date;
+                receiveAt = null;
+            }else{
+                sendAt = null;
+                receiveAt = date;
+            }
+            return dtoClass.cast(TrashGmailResponseDTO.builder()
+                    .id(message.getId())
+                    .mailType(mailType)
+                    .title(headers.get("Subject"))
+                    .sender(headers.get("From"))
+                    .receiver(headers.get("To"))
+                    .sendAt(sendAt)
+                    .receiveAt(receiveAt)
+                    .content(detail.getPayload())
+                    .build()
+            );
         }
        
         throw new IllegalArgumentException("Unsupported DTO Type");

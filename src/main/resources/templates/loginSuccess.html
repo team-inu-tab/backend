@@ -24,6 +24,7 @@
     <button onclick="getScheduledEmails()">get scheduled emails</button>
     <button onclick="getDraftEmails()">get draft emails</button>
     <button onclick="getSpamEmails()">get spam emails</button>
+    <button onclick="getTrashEmails()">get trash emails</button>
     <h3>메일 삭제 API</h3>
     <input id="deleteMailId" placeholder="삭제할 메일 id" type="text">
     <button onclick="deleteGmailTemporary()">delete gmail temporary</button>
@@ -68,8 +69,8 @@
         <button onclick="updateDraftEmail()" style="color:orange;">임시메일 수정</button>
         <button onclick="deleteDraftEmail()" style="color:red;">임시메일 삭제</button>
     </div>
-    
-    
+
+
     <div>
         <h5>허깅페이스 API</h5>
         <input id="huggingfaceText" type="text" placeholder="메일 텍스트">
@@ -78,6 +79,27 @@
     <br>
     <script>
         let accessToken = "";
+
+        async function getTrashEmails() {
+            try {
+                const response = await fetch('http://localhost:8089/mails/trash', {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        Authorization: accessToken,
+                    }
+                })
+                if (response.ok) {
+                    alert('휴지통 메일 수신 성공(콘솔에 데이터 확인)');
+                    const data = await response.json();
+                    console.log(data);
+                } else {
+                    alert('휴지통 메일 수신 실패');
+                }
+            } catch (error) {
+                alert("휴지통 메일 수신 중 오류 발생")
+            }
+        }
         
         async function deleteGmailTemporary(){
             const selectedMailIds = document.getElementById("deleteMailId").value;
