@@ -40,7 +40,7 @@ public class ChatGPTService {
         String studentName = user.getStudentName();
         // String phoneNumber = user.getPhoneNumber(); // DB 필드가 있다면
 
-        // 2) 템플릿 치환
+        // 2) 템플릿
         String developerMessageTemplate = """
             A university student is writing an email to a professor.
             I want to make sure the tone of the email is polite and formal.
@@ -101,7 +101,6 @@ public class ChatGPTService {
 
             return result;
         } else {
-            // 실패 시 원하는 형식으로 throw
             throw new RuntimeException("API 오류: " + response.getBody());
         }
     }
