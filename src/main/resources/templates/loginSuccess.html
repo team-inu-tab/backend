@@ -43,7 +43,7 @@
     </div>
     <br />
     <div>
-        <h3>메일 전송 (첨부파일 선택ㄱ적)</h3>
+        <h3>메일 전송 (첨부파일 선택적)</h3>
         <input id="toEmail" type="email" placeholder="받는 사람 이메일" />
         <br />
         <input id="subject" type="text" placeholder="제목" />
@@ -74,6 +74,11 @@
         <h5>허깅페이스 API</h5>
         <input id="huggingfaceText" type="text" placeholder="메일 텍스트">
         <button onclick="getDataFromHuggingFace()">허깅페이스 데이터 조회</button>
+    </div>
+    <div>
+        <h3>ChatGPT API 테스트</h3>
+        <input id="chatgptText" type="text" placeholder="ChatGPT에게 보낼 메시지" />
+        <button onclick="callChatGPT()">Send to ChatGPT</button>
     </div>
     <br>
     <script>
@@ -600,6 +605,34 @@
             }
         } catch (error) {
             alert("메일 전송 중 오류 발생");
+            console.error(error);
+        }
+    }
+
+    async function callChatGPT() {
+        const message = document.getElementById("chatgptText").value;
+        
+        try {
+            const response = await fetch('http://localhost:8089/api/gpt', {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,       // 로그인 상태라면 토큰이 필요할 수 있음
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            });
+
+            if (response.ok) {
+                const data = await response.text(); 
+                // ChatGPT가 응답을 JSON 형식으로 준다면 response.json()으로 파싱 가능
+                alert("ChatGPT 응답:\n" + data);
+                console.log(data);
+            } else {
+                alert("ChatGPT API 호출 실패");
+            }
+        } catch (error) {
+            alert("ChatGPT API 호출 중 오류 발생");
             console.error(error);
         }
     }
