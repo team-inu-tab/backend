@@ -44,6 +44,9 @@ public class User {
     //access token
     private String accessToken;
 
+    //전화번호
+    private String phoneNumber;
+
     @CreatedDate
     @Column(name = "created_time", nullable = false)
     private LocalDateTime createdTime;
@@ -76,11 +79,12 @@ public class User {
     }
 
 
-    public void updateStudentInfo(String schoolName, String studentDepartment, Integer studentNum, String studentName){
+    public void updateStudentInfo(String schoolName, String studentDepartment, Integer studentNum, String studentName, String phoneNumber){
         this.schoolName = schoolName;
         this.studentDepartment = studentDepartment;
         this.studentNum = studentNum;
         this.studentName = studentName;
+        this.phoneNumber = phoneNumber;
     }
 
     public void updateWorkerInfo(String workerDepartment, String company, String position){
