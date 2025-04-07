@@ -38,7 +38,7 @@ public class ChatGPTService {
         String department = user.getStudentDepartment();
         Integer studentNum = user.getStudentNum();
         String studentName = user.getStudentName();
-        // String phoneNumber = user.getPhoneNumber(); // DB 필드가 있다면
+        String phoneNumber = user.getPhoneNumber();
 
         // 2) 템플릿
         String developerMessageTemplate = """
@@ -52,17 +52,11 @@ public class ChatGPTService {
             output: <교수님 성함> 교수님께 \\n\\n안녕하십니까 교수님\\n저는 <학과> <학번> <이름> 입니다.\\n\\n<연구실 이름> 연구실에 관심 있어 면담을 요청드리고자 연락드렸습니다.\\n가능하신 시간대를 알려주시면 찾아뵙도록 하겠습니다.\\n\\n감사합니다.\\n<이름> 드림\\n<전화번호>
         """;
 
-        // null 방지 (필요하다면)
-        String deptStr = department != null ? department : "";
-        String studNumStr = studentNum != null ? studentNum.toString() : "";
-        String studNameStr = studentName != null ? studentName : "";
-        // String phoneNumberStr = phoneNumber != null ? phoneNumber : "";
-
         String developerMessage = developerMessageTemplate
-                .replace("<학과>", deptStr)
-                .replace("<학번>", studNumStr)
-                .replace("<이름>", studNameStr);
-        // .replace("<전화번호>", phoneNumberStr);
+                .replace("<학과>", department)
+                .replace("<학번>", studentNum.toString())
+                .replace("<이름>", studentName)
+                .replace("<전화번호>", phoneNumber);
 
         // 3) ChatGPT API 요청 준비
         JSONObject json = new JSONObject();
