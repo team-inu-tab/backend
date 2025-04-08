@@ -457,36 +457,6 @@
             })
         }
 
-    async function sendEmail() {
-        const toEmail = document.getElementById("toEmail").value;
-        const subject = document.getElementById("subject").value;
-        const body = document.getElementById("body").value;
-
-        try {
-            const response = await fetch('http://localhost:8089/mails/send', {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: accessToken,
-                },
-                body: JSON.stringify({
-                    toEmail: toEmail,
-                    subject: subject,
-                    body: body
-                })
-            });
-
-            if (response.ok) {
-                alert('메일 전송 성공!');
-            } else {
-                alert('메일 전송 실패');
-            }
-        } catch (error) {
-            alert("메일 전송 중 오류 발생");
-        }
-    }
-
     // 임시메일 저장
     async function saveDraftEmail() {
         const toEmail = document.getElementById("draftToEmail").value;
@@ -601,40 +571,47 @@
         }
     }
     async function sendMailWithOptionalAttachment() {
-        const toEmail = document.getElementById("toEmail").value;
-        const subject = document.getElementById("subject").value;
-        const body = document.getElementById("body").value;
-        const fileInput = document.getElementById("mailAttachment");
-    
+        const fileInput = document.getElementById("file");
+        const file = fileInput ? fileInput.files[0] : null;
+
         const formData = new FormData();
-        formData.append("to", toEmail);
-        formData.append("subject", subject);
-        formData.append("body", body);
-    
-        if (fileInput.files.length > 0) {
-            formData.append("file", fileInput.files[0]);
+
+        const mailData = {
+            toEmail: [
+                { value: "cubric0223@gmail.com" },
+                { value: "quswnddus@naver.com" }
+            ],
+            subject: "test subject",
+            body: "test body"
+        };
+
+        formData.append("data", new Blob([JSON.stringify(mailData)], { type: "application/json" }), "data.json");
+
+        if (file) {
+            formData.append("file", file);
         }
-    
+
         try {
             const response = await fetch("http://localhost:8089/mails/send", {
                 method: "POST",
-                credentials: "include",
                 headers: {
                     Authorization: accessToken
                 },
+                credentials: "include",
                 body: formData
             });
-    
+
             if (response.ok) {
                 alert("메일 전송 성공!");
             } else {
                 alert("메일 전송 실패");
             }
         } catch (error) {
-            alert("메일 전송 중 오류 발생");
             console.error(error);
+            alert("메일 전송 중 오류 발생");
         }
     }
+
 
     async function callChatGPT() {
         const message = document.getElementById("chatgptText").value;

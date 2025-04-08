@@ -1,13 +1,23 @@
 package com.example.capstoneback.Controller;
 
 import com.example.capstoneback.DTO.EmailSendDTO;
+import com.example.capstoneback.DTO.MailRequestDTO;
 import com.example.capstoneback.Service.GmailMailSenderService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,19 +38,21 @@ public class GmailMailSendController {
 //        return ResponseEntity.ok("이메일 전송 성공");
 //    }
 
-    @PostMapping("/mails/send")
+    @PostMapping(value = "/mails/send", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> sendEmail(
             Authentication authentication,
-            @RequestParam("to") String to,
-            @RequestParam("subject") String subject,
-            @RequestParam("body") String body,
-            @RequestPart(value = "file", required = false) MultipartFile file // 첨부파일(필수 x)
+            @RequestPart("data") MailRequestDTO mailRequestDTO,
+            @RequestPart(value = "file", required = false) MultipartFile file
     ) {
         try {
-            mailSender.sendEmail(authentication, to, subject, body, file);
+            for (MailRequestDTO.EmailValue emailValue : mailRequestDTO.getToEmail()) {
+                String to = emailValue.getValue();
+                mailSender.sendEmail(authentication, to, mailRequestDTO.getSubject(), mailRequestDTO.getBody(), file);
+            }
             return ResponseEntity.ok("메일 전송 성공");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("메일 전송 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("메일 전송 실패: " + e.getMessage());
         }
     }
 
