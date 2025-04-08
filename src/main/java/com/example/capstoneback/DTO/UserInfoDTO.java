@@ -27,6 +27,9 @@ public class UserInfoDTO {
         @NotNull(message = "학생 이름을 입력해주세요.")
         private String studentName;
 
+        @NotNull(message = "학년을 입력해주세요.")
+        private String studentGrade;
+
         @NotNull(message = "전화번호를 입력해주세요.")
         private String phoneNumber;
     }
