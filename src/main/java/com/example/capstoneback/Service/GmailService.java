@@ -428,7 +428,8 @@ public class GmailService {
                     .title(headers.get("Subject"))
                     .sender(headers.get("From"))
                     .content(detail.getPayload())
-                    .receiveAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .receiveAt(date)
+                    .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
         // 보낸 메일
@@ -438,7 +439,8 @@ public class GmailService {
                     .title(headers.get("Subject"))
                     .receiver(headers.get("To"))
                     .content(detail.getPayload())
-                    .sendAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .sendAt(date)
+                    .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
 
@@ -449,7 +451,8 @@ public class GmailService {
                     .title(headers.get("Subject"))
                     .receiver(headers.get("To"))
                     .content(detail.getPayload())
-                    .createdAt(date).isImportant(detail.getLabelIds().contains("STARRED"))
+                    .createdAt(date)
+                    .isImportant(detail.getLabelIds().contains("STARRED"))
                     .fileNameList(attachments).build());
         }
         // 중요 메일
