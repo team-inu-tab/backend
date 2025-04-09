@@ -35,6 +35,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${LOGIN_SUCCESS_REDIRECT_PAGE}")
     private String LOGIN_SUCCESS_REDIRECT_PAGE;
 
+    @Value("${LOGIN_SUCCESS_REDIRECT_PAGE_IF_INFO_ALREADY_EXISTS}")
+    private String LOGIN_SUCCESS_REDIRECT_PAGE_IF_INFO_ALREADY_EXISTS;
+
     private final JwtUtil jwtUtil;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
@@ -71,7 +74,15 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Refresh Token 쿠키 수명: 24시간, 사용 가능 url path: '/reissue'
         response.addCookie(createCookie("refresh-token", refreshToken, 24*60*60, "/"));
 
-        response.sendRedirect(FRONT_ADDRESS + LOGIN_SUCCESS_REDIRECT_PAGE); //프론트 특정 url로 리다이렉트 되게 설정
+        User user = op_user.get();
+
+        // 학생 정보가 이미 존재할 경우 받은 메일 페이지로 이동
+        if(user.getSchoolName() != null){
+            response.sendRedirect(FRONT_ADDRESS + LOGIN_SUCCESS_REDIRECT_PAGE_IF_INFO_ALREADY_EXISTS);
+        }else{
+            // 학생 정보가 없을 경우 학생 정보 기입 페이지로 이동
+            response.sendRedirect(FRONT_ADDRESS + LOGIN_SUCCESS_REDIRECT_PAGE);
+        }
     }
 
     //쿠키 생성 메서드
