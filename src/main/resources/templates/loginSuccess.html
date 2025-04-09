@@ -25,6 +25,9 @@
     <button onclick="getDraftEmails()">get draft emails</button>
     <button onclick="getSpamEmails()">get spam emails</button>
     <button onclick="getTrashEmails()">get trash emails</button>
+    <h5>보낸 메일 상세 조회 (mailId로)</h5>
+    <input id="sentMailId" placeholder="보낸 메일 ID 입력" type="text" />
+    <button onclick="getSentEmailById()">get sent email by ID</button>
     <h3>메일 삭제 API</h3>
     <input id="deleteMailId" placeholder="삭제할 메일 id" type="text">
     <button onclick="deleteGmailTemporary()">delete gmail temporary</button>
@@ -571,7 +574,7 @@
         }
     }
     async function sendMailWithOptionalAttachment() {
-        const fileInput = document.getElementById("file");
+        const fileInput = document.getElementById("mailAttachment");
         const file = fileInput ? fileInput.files[0] : null;
 
         const formData = new FormData();
@@ -637,6 +640,35 @@
             }
         } catch (error) {
             alert("ChatGPT API 호출 중 오류 발생");
+            console.error(error);
+        }
+    }
+    async function getSentEmailById() {
+        const mailId = document.getElementById("sentMailId").value;
+
+        if (!mailId) {
+            alert("메일 ID를 입력해주세요.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8089/mails/send/${mailId}`, {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert("보낸 메일 조회 성공! (콘솔 확인)");
+                console.log(data);
+            } else {
+                alert("보낸 메일 조회 실패");
+            }
+        } catch (error) {
+            alert("보낸 메일 조회 중 오류 발생");
             console.error(error);
         }
     }

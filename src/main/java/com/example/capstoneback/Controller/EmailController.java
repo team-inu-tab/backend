@@ -31,6 +31,11 @@ public class EmailController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("mails/send/{mailId}")
+    public ResponseEntity<SentEmailResponseDTO> getSentMailById(@PathVariable String mailId, Authentication authentication) throws IOException {
+        return ResponseEntity.ok(gmailService.getSentGmailWithMailId(mailId, authentication));
+    }
+
     @GetMapping("/mails/self")
     public ResponseEntity<Map<String, Object>> getSelfEmail(@RequestParam(name = "pageToken", required = false) String pageToken,Authentication authentication) throws IOException {
         Map<String, Object> responseDTO = gmailService.getSelfGmail(pageToken, authentication);
