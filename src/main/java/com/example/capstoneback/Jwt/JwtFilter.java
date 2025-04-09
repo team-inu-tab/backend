@@ -38,39 +38,38 @@ public class JwtFilter extends OncePerRequestFilter {
         //토큰이 만료 및 올바른 형식의 토큰인지 확인
         try{
             jwtUtil.isExpired(accessToken);
+
+            //토큰의 category가 access-token이 아닐 경우 401 코드 리턴
+            if(!jwtUtil.getCategory(accessToken).equals("access-token")){
+                throw new IllegalArgumentException("Invalid token category");
+            }
+
+            String role = jwtUtil.getRole(accessToken);
+            String name = jwtUtil.getUsername(accessToken); // 사용자명 중복을 피하기 위해 Username 값을 name에 저장하여 사용
+
+            OAuth2UserDTO userDTO = OAuth2UserDTO.builder()
+                    .role(role)
+                    .name(name)
+                    .build();
+
+            //유저 정보 객체 생성
+            CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
+
+            //생성한 유저 정보 객체를 바탕으로 유저 인증 객체 생성
+            Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
+
+            //SecurityContext에 유저 인증 정보 일시적으로 저장(응답을 보낸 후 세션 삭제됨)
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
         }catch (ExpiredJwtException e){
             System.out.println("token expired");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             return;
         }catch(MalformedJwtException | IllegalArgumentException e){
             System.out.println("invalid JWT");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
             return;
         }
-
-        //토큰의 category가 access-token이 아닐 경우 401 코드 리턴
-        if(!jwtUtil.getCategory(accessToken).equals("access-token")){
-            System.out.println("invalid token");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
-
-        String role = jwtUtil.getRole(accessToken);
-        String name = jwtUtil.getUsername(accessToken); // 사용자명 중복을 피하기 위해 Username 값을 name에 저장하여 사용
-
-        OAuth2UserDTO userDTO = OAuth2UserDTO.builder()
-                .role(role)
-                .name(name)
-                .build();
-
-        //유저 정보 객체 생성
-        CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
-
-        //생성한 유저 정보 객체를 바탕으로 유저 인증 객체 생성
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
-
-        //SecurityContext에 유저 인증 정보 일시적으로 저장(응답을 보낸 후 세션 삭제됨)
-        SecurityContextHolder.getContext().setAuthentication(authToken);
 
         //필터 체인의 다음 필터 실행
         filterChain.doFilter(request, response);
