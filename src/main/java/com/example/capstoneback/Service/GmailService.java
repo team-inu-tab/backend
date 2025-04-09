@@ -269,7 +269,6 @@ public class GmailService {
         return result;
     }
 
-
     // 내게 쓴 메일함은 라벨이 SENT, INBOX가 동시에 붙어있어서 user entity 조회
     public Map<String, Object> getSelfGmail(String pageToken, Authentication auth) throws IOException {
         User user = getUser(auth);
@@ -359,6 +358,42 @@ public class GmailService {
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(user.getAccessToken(), null));
         return new Gmail.Builder(httpTransport, jsonFactory, new HttpCredentialsAdapter(credentials))
                 .setApplicationName("maeil-mail")
+                .build();
+    }
+
+    // mailId로 단일 메시지 조회
+    public SentEmailResponseDTO getSentGmailWithMailId(String mailId, Authentication auth) throws IOException {
+        User user = getUser(auth);  // 인증된 사용자 가져오기
+        Gmail gmail = getGmailService(user);  // Gmail 서비스 생성
+
+        // 메일 상세 정보 조회
+        Message message = gmail.users().messages().get(user.getEmail(), mailId).execute();
+
+        // 헤더 정보 파싱
+        Map<String, String> headers = new HashMap<>();
+        message.getPayload().getHeaders().forEach(h -> headers.put(h.getName(), h.getValue()));
+
+        // 날짜 파싱
+        String dateStr = headers.getOrDefault("Date", "").replace(" (UTC)", "").replace(" (GMT)", "")
+                .replaceAll("\\s{2,}", " "); // 연속된 공백 제거
+        LocalDateTime date = null;
+        if (!dateStr.isEmpty()) {
+            ZonedDateTime zdt = ZonedDateTime.parse(dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+            date = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+        }
+
+        // 첨부파일 파싱
+        List<HashMap<String, String>> attachments = getAttachments(message);
+
+        // DTO 생성 및 반환
+        return SentEmailResponseDTO.builder()
+                .id(message.getId())
+                .title(headers.get("Subject"))
+                .receiver(headers.get("To"))
+                .content(message.getPayload())
+                .sendAt(date)
+                .isImportant(message.getLabelIds().contains("STARRED"))
+                .fileNameList(attachments)
                 .build();
     }
 
