@@ -33,6 +33,8 @@ public class SecurityConfig {
 
     @Value("${FRONT_ADDRESS}")
     private String FRONT_ADDRESS;
+    @Value("${MOBILE_ADDRESS}")
+    private String MOBILE_ADDRESS;
 
     private final JwtUtil jwtUtil;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -63,7 +65,7 @@ public class SecurityConfig {
                                 CorsConfiguration configuration = new CorsConfiguration();
 
                                 //요청 허용하는 오리진 설정
-                                configuration.setAllowedOrigins(Collections.singletonList(FRONT_ADDRESS));
+                                configuration.setAllowedOrigins(Arrays.asList(FRONT_ADDRESS, MOBILE_ADDRESS));
 
                                 //허용하는 요청 종류(Get, Post...) 설정
                                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
