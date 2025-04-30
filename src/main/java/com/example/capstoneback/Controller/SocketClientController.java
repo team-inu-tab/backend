@@ -9,13 +9,12 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/socket")
 @RequiredArgsConstructor
 public class SocketClientController {
 
     private final SocketClientService socketClientService;
 
-    @PostMapping("/send")
+    @PostMapping("/api/gpt")
     public ResponseEntity<String> sendMessage(@RequestBody String message, Authentication authentication) {
         try {
             String result = socketClientService.sendMessage(message, authentication);
