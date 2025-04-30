@@ -1,8 +1,6 @@
 package com.example.capstoneback.Service;
 
 import com.example.capstoneback.Entity.User;
-import com.example.capstoneback.Error.ErrorCode;
-import com.example.capstoneback.Error.UserDoesntExistException;
 import com.example.capstoneback.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,17 +14,18 @@ import java.net.Socket;
 @Service
 @RequiredArgsConstructor
 public class SocketClientService {
-    private final UserRepository userRepository;
 
     @Value("${AI_IP_ADDRESS}")
     private String AI_IP_ADDRESS;
+
+    private final UserRepository userRepository;
 
     public String sendMessage(String message, Authentication authentication) {
         String serverIp = AI_IP_ADDRESS;
         int serverPort = 8080;
 
         User user = userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new UserDoesntExistException(ErrorCode.USER_DOESNT_EXIST));
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
 
         String department = user.getStudentDepartment();
         Integer studentNum = user.getStudentNum();
@@ -67,7 +66,6 @@ public class SocketClientService {
                 hasPhone = true;
             }
 
-            // 누락된 정보 추가
             StringBuilder appendInfo = new StringBuilder();
             if (!hasDept) appendInfo.append("\n학과: ").append(department);
             if (!hasNum) appendInfo.append("\n학번: ").append(studentNum);
