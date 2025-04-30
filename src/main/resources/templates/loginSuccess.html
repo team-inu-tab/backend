@@ -73,7 +73,9 @@
         <button onclick="deleteDraftEmail()" style="color:red;">임시메일 삭제</button>
     </div>
 
-
+    <h3>AI Socket 응답 테스트</h3>
+    <input id="aiSocketMessage" type="text" placeholder="전송할 메시지">
+    <button onclick="sendToSocketAI()">Send to Socket AI</button>
     <div>
         <h5>허깅페이스 API</h5>
         <input id="huggingfaceText" type="text" placeholder="메일 텍스트">
@@ -670,6 +672,37 @@
         } catch (error) {
             alert("보낸 메일 조회 중 오류 발생");
             console.error(error);
+        }
+    }
+    async function sendToSocketAI() {
+        const message = document.getElementById("aiSocketMessage").value;
+    
+        if (!message) {
+            alert("보낼 메시지를 입력하세요.");
+            return;
+        }
+    
+        try {
+            const response = await fetch("http://localhost:8089/socket/send", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    Authorization: accessToken,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(message)
+            });
+    
+            if (response.ok) {
+                const result = await response.text();
+                alert("응답 수신 완료:\n" + result);
+                console.log(result);
+            } else {
+                alert("서버 응답 실패");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("요청 중 오류 발생");
         }
     }
     </script>
