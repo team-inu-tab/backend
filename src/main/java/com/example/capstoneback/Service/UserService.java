@@ -1,5 +1,6 @@
 package com.example.capstoneback.Service;
 
+import com.example.capstoneback.DTO.UserEmailInfoResponseDTO;
 import com.example.capstoneback.DTO.UserInfoDTO;
 import com.example.capstoneback.Entity.User;
 import com.example.capstoneback.Error.ErrorCode;
@@ -41,6 +42,15 @@ public class UserService {
         //유저 정보 없데이트
         user.updateWorkerInfo(workerInfo.getWorkerDepartment(), workerInfo.getCompany(), workerInfo.getPosition());
         userRepository.save(user);
+    }
+
+    // 유저 이메일 반환 메서드
+    public UserEmailInfoResponseDTO getUserEmail(HttpServletRequest request) {
+        User user = getUserFromHeaderToken(request);
+
+        return UserEmailInfoResponseDTO.builder()
+                .email(user.getEmail())
+                .build();
     }
 
     //request header의 token으로부터 유저 엔티티 가져오는 메서드
