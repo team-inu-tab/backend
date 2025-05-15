@@ -18,10 +18,14 @@ public class SocketClientController {
     public ResponseEntity<String> sendMessage(@RequestBody String message, Authentication authentication) {
         try {
             String result = socketClientService.sendMessage(message, authentication);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "text/plain; charset=UTF-8")
+                    .body(result);
         } catch (Exception e) {
             log.error("요청 실패", e);
-            return ResponseEntity.internalServerError().body("요청 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .header("Content-Type", "text/plain; charset=UTF-8")
+                    .body("요청 실패: " + e.getMessage());
         }
     }
 }
