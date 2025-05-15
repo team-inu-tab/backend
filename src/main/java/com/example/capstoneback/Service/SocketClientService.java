@@ -45,7 +45,7 @@ public class SocketClientService {
 
             // {"message":" 로 시작하면 제거
             if (response.startsWith("{\"message\":\"")) {
-                response = response.substring(11);
+                response = response.substring(12);
                 response = response.replace("\\n", "\n").replace("\\\"", "\"");
             }
 
