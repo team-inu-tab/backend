@@ -43,6 +43,12 @@ public class SocketClientService {
             int bytesRead = input.read(buffer);
             String response = new String(buffer, 0, bytesRead);
 
+            // {"message":" 로 시작하면 제거
+            if (response.startsWith("{\"message\":\"")) {
+                response = response.substring(11);
+                response = response.replace("\\n", "\n").replace("\\\"", "\"");
+            }
+
             // 치환 처리
             boolean hasDept = false, hasNum = false, hasName = false, hasPhone = false;
 
