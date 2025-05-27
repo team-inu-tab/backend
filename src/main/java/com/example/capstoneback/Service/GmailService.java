@@ -244,11 +244,22 @@ public class GmailService {
         // 첨부파일 파싱
         List<HashMap<String, String>> attachments = getAttachments(message);
 
+        String mailType;
+        String userEmail = user.getEmail();
+
+        if(headers.get("To").contains(userEmail)){
+            mailType = "received";
+        }else{
+            mailType = "sent";
+        }
+
         // DTO 생성 및 반환
         return SentEmailResponseDTO.builder()
                 .id(message.getId())
                 .title(headers.get("Subject"))
                 .receiver(headers.get("To"))
+                .sender(headers.get("From"))
+                .mailType(mailType)
                 .content(message.getPayload())
                 .sendAt(date)
                 .isImportant(message.getLabelIds().contains("STARRED"))
